@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Glowing Outer Radar Rings -->
+    <path
+        android:strokeWidth="3"
+        android:strokeColor="#38BDF8"
+        android:pathData="M60,10 A50,50 0 1,1 59.9,10" />
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#0EA5E9"
+        android:pathData="M60,25 A35,35 0 1,1 59.9,25" />
+    <!-- Diamond Shield Emblem -->
+    <path
+        android:pathData="M60,30 L85,48 L85,72 C85,88 74,98 60,102 C46,98 35,88 35,72 L35,48 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="35"
+                android:startY="30"
+                android:endX="85"
+                android:endY="102"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#38BDF8" />
+                <item android:offset="1.0" android:color="#0284C7" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Center Spark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,48 L64,60 L76,64 L64,68 L60,80 L56,68 L44,64 L56,60 Z" />
+</vector>

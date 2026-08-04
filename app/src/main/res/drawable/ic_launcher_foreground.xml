@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Diamond Shield Emblem -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,22 L78,38 L78,60 C78,74 68,84 54,88 C40,84 30,74 30,60 L30,38 Z" />
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M54,22 L54,88 C68,84 78,74 78,60 L78,38 Z" />
+    <!-- Center Spark Star -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,38 L57,49 L68,52 L57,55 L54,66 L51,55 L40,52 L51,49 Z" />
+</vector>

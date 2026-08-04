@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="360dp"
+    android:height="180dp"
+    android:viewportWidth="360"
+    android:viewportHeight="180">
+    <path
+        android:pathData="M0,0h360v180h-360z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="360"
+                android:endY="180"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#0F172A" />
+                <item android:offset="0.6" android:color="#0284C7" />
+                <item android:offset="1.0" android:color="#10B981" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Grid Overlay Lines -->
+    <path
+        android:strokeWidth="1"
+        android:strokeColor="#1E3A8A"
+        android:pathData="M0,40 H360 M0,80 H360 M0,120 H360 M0,160 H360 M60,0 V180 M120,0 V180 M180,0 V180 M240,0 V180 M300,0 V180" />
+    <!-- Signal Pulse Circles -->
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#38BDF8"
+        android:pathData="M270,90 A45,45 0 1,1 269.9,90" />
+    <path
+        android:strokeWidth="3"
+        android:strokeColor="#10B981"
+        android:pathData="M270,90 A25,25 0 1,1 269.9,90" />
+    <!-- Center Pulse Core -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M270,85 L275,90 L270,95 L265,90 Z" />
+</vector>

@@ -1,0 +1,6 @@
+{
+  "name": "Claritas",
+  "description": "The Ultra-Clean, Anti-Clickbait, Privacy-First News Intelligence Tool.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
