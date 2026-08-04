@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ProcessingMode
+import kotlinx.coroutines.launch
 
 data class OnboardingPageData(
     val title: String,
@@ -78,15 +82,15 @@ data class OnboardingPageData(
     val primaryColor: Color
 )
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     onFinish: (ProcessingMode, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var currentPage by remember { mutableIntStateOf(0) }
     var selectedMode by remember { mutableStateOf(ProcessingMode.SUPER_FAST) }
     var apiKeyInput by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     val pages = listOf(
         OnboardingPageData(
@@ -123,6 +127,8 @@ fun OnboardingScreen(
         )
     )
 
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val currentPage = pagerState.currentPage
     val currentPageData = pages[currentPage]
 
     BoxWithConstraints(
@@ -132,171 +138,157 @@ fun OnboardingScreen(
     ) {
         val isTablet = maxWidth >= 720.dp
 
-        if (isTablet) {
-            // Adaptive Two-Column Layout for Tablets & Foldables
-            Row(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(if (isTablet) 32.dp else 20.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Left Column: Custom Dynamic Canvas Decorative Graphic
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) { pageIndex ->
+                val pageData = pages[pageIndex]
+                if (isTablet) {
+                    // Adaptive Two-Column Layout for Tablets & Foldables
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AnimatedContent(
-                            targetState = currentPage,
-                            transitionSpec = { fadeIn(tween(400)) with fadeOut(tween(400)) },
-                            label = "canvas_graphic"
-                        ) { pageIndex ->
-                            OnboardingArtCanvas(
-                                pageIndex = pageIndex,
-                                tintColor = currentPageData.primaryColor,
-                                modifier = Modifier.size(280.dp)
-                            )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                OnboardingArtCanvas(
+                                    pageIndex = pageIndex,
+                                    tintColor = pageData.primaryColor,
+                                    modifier = Modifier.size(280.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Text(
+                                    text = "CLARITAS INTELLIGENCE",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = pageData.primaryColor,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Branding under art
-                        Text(
-                            text = "CLARITAS INTELLIGENCE",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = currentPageData.primaryColor,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
-                        )
+                        Card(
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            ),
+                            modifier = Modifier
+                                .weight(1.2f)
+                                .fillMaxHeight()
+                                .padding(16.dp)
+                                .testTag("onboarding_tablet_panel")
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(28.dp)
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                OnboardingDetails(
+                                    pageData = pageData,
+                                    currentPage = pageIndex,
+                                    selectedMode = selectedMode,
+                                    onModeSelected = { selectedMode = it },
+                                    apiKeyInput = apiKeyInput,
+                                    onApiKeyChanged = { apiKeyInput = it }
+                                )
+                            }
+                        }
                     }
-                }
-
-                // Right Column: Setup Panel & Navigation
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    modifier = Modifier
-                        .weight(1.2f)
-                        .fillMaxHeight()
-                        .padding(16.dp)
-                        .testTag("onboarding_tablet_panel")
-                ) {
+                } else {
+                    // Mobile Standard One-Column Flow
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(28.dp)
                             .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        OnboardingDetails(
-                            pageData = currentPageData,
-                            currentPage = currentPage,
-                            selectedMode = selectedMode,
-                            onModeSelected = { selectedMode = it },
-                            apiKeyInput = apiKeyInput,
-                            onApiKeyChanged = { apiKeyInput = it }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OnboardingArtCanvas(
+                            pageIndex = pageIndex,
+                            tintColor = pageData.primaryColor,
+                            modifier = Modifier
+                                .size(190.dp)
+                                .padding(12.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        OnboardingNavigationRow(
-                            currentPage = currentPage,
-                            totalPages = pages.size,
-                            primaryColor = currentPageData.primaryColor,
-                            onPrev = { if (currentPage > 0) currentPage-- },
-                            onNext = {
-                                if (currentPage < pages.size - 1) {
-                                    currentPage++
-                                } else {
-                                    onFinish(selectedMode, apiKeyInput)
-                                }
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(20.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                OnboardingDetails(
+                                    pageData = pageData,
+                                    currentPage = pageIndex,
+                                    selectedMode = selectedMode,
+                                    onModeSelected = { selectedMode = it },
+                                    apiKeyInput = apiKeyInput,
+                                    onApiKeyChanged = { apiKeyInput = it }
+                                )
                             }
-                        )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
-        } else {
-            // Mobile Standard One-Column Flow with top graphic and bottom cards
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
 
-                // Custom Graphic centered
-                AnimatedContent(
-                    targetState = currentPage,
-                    transitionSpec = { fadeIn(tween(400)) with fadeOut(tween(400)) },
-                    label = "mobile_art"
-                ) { pageIndex ->
-                    OnboardingArtCanvas(
-                        pageIndex = pageIndex,
-                        tintColor = currentPageData.primaryColor,
-                        modifier = Modifier
-                            .size(190.dp)
-                            .padding(12.dp)
-                    )
-                }
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Main Details Card
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .fillMaxWidth()
-                    ) {
-                        OnboardingDetails(
-                            pageData = currentPageData,
-                            currentPage = currentPage,
-                            selectedMode = selectedMode,
-                            onModeSelected = { selectedMode = it },
-                            apiKeyInput = apiKeyInput,
-                            onApiKeyChanged = { apiKeyInput = it }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Navigation indicators & buttons at bottom
-                OnboardingNavigationRow(
-                    currentPage = currentPage,
-                    totalPages = pages.size,
-                    primaryColor = currentPageData.primaryColor,
-                    onPrev = { if (currentPage > 0) currentPage-- },
-                    onNext = {
-                        if (currentPage < pages.size - 1) {
-                            currentPage++
-                        } else {
-                            onFinish(selectedMode, apiKeyInput)
+            OnboardingNavigationRow(
+                currentPage = currentPage,
+                totalPages = pages.size,
+                primaryColor = currentPageData.primaryColor,
+                onPrev = {
+                    if (currentPage > 0) {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(currentPage - 1)
                         }
                     }
-                )
+                },
+                onNext = {
+                    if (currentPage < pages.size - 1) {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(currentPage + 1)
+                        }
+                    } else {
+                        onFinish(selectedMode, apiKeyInput)
+                    }
+                }
+            )
 
-                Spacer(modifier = Modifier.height(10.dp))
-            }
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
