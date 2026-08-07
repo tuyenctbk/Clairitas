@@ -9,8 +9,11 @@ import com.example.data.model.Article
 import com.example.data.model.ProcessingMode
 import com.example.data.model.TimeBudget
 import com.example.data.repository.NewsRepository
+import com.example.data.repository.StorageStats
 import com.example.service.AudioDigestManager
 import com.example.service.AudioQueueItem
+import com.example.service.BackgroundSyncInfo
+import com.example.service.BackgroundSyncManager
 import com.example.service.FirebaseService
 import com.example.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,16 +26,21 @@ import kotlinx.coroutines.launch
 
 class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val prefs = application.getSharedPreferences("claritas_prefs", Context.MODE_PRIVATE)
+    private val prefs = application.getSharedPreferences("sift_prefs", Context.MODE_PRIVATE)
 
     private val repository = NewsRepository(application)
     val audioManager = AudioDigestManager(application)
     val firebaseService = FirebaseService.getInstance(application)
+    private val syncManager = BackgroundSyncManager(application)
+    val syncInfo: StateFlow<BackgroundSyncInfo> = syncManager.syncInfo
 
     private val _themeMode = MutableStateFlow(
         ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
     )
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+    private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "en") ?: "en")
+    val appLanguage: StateFlow<String> = _appLanguage.asStateFlow()
 
     private val _isOnboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
     val isOnboardingCompleted: StateFlow<Boolean> = _isOnboardingCompleted.asStateFlow()
@@ -47,6 +55,9 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _selectedTimeBudget = MutableStateFlow(TimeBudget.DEEP_DIVE)
     val selectedTimeBudget: StateFlow<TimeBudget> = _selectedTimeBudget.asStateFlow()
+
+    private val _selectedCategoryTags = MutableStateFlow<Set<String>>(setOf("ALL"))
+    val selectedCategoryTags: StateFlow<Set<String>> = _selectedCategoryTags.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow("ALL")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
@@ -65,8 +76,28 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _customApiKey = MutableStateFlow(prefs.getString("custom_api_key", "") ?: "")
     val customApiKey: StateFlow<String> = _customApiKey.asStateFlow()
 
+    private val _selectedCountry = MutableStateFlow(
+        prefs.getString("selected_country", "Global / International (English)") ?: "Global / International (English)"
+    )
+    val selectedCountry: StateFlow<String> = _selectedCountry.asStateFlow()
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _storageStats = MutableStateFlow(StorageStats())
+    val storageStats: StateFlow<StorageStats> = _storageStats.asStateFlow()
+
+    private val _clearCacheMessage = MutableStateFlow<String?>(null)
+    val clearCacheMessage: StateFlow<String?> = _clearCacheMessage.asStateFlow()
+
+    private val _intelligenceBriefingSummary = MutableStateFlow(
+        prefs.getString("latest_intelligence_briefing", "Compiling daily top-priority intelligence briefing from high-SNR sources...") ?: "Daily intelligence briefing ready."
+    )
+    val intelligenceBriefingSummary: StateFlow<String> = _intelligenceBriefingSummary.asStateFlow()
+
+    init {
+        loadStorageStats()
+    }
 
     val keywordTraps: StateFlow<List<KeywordTrapEntity>> = repository.allKeywordTraps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -77,15 +108,17 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     val filteredArticles: StateFlow<List<Article>> = combine(
         repository.allArticles,
         _selectedTimeBudget,
-        _selectedCategory,
+        _selectedCategoryTags,
         _searchQuery,
         _onlyHighSnr
-    ) { articles, budget, category, query, highSnrOnly ->
+    ) { articles, budget, categoryTags, query, highSnrOnly ->
         var list = articles
 
-        // Category filter
-        if (category != "ALL") {
-            list = list.filter { it.category.equals(category, ignoreCase = true) }
+        // Multi-tag Category Filter
+        if (!categoryTags.contains("ALL") && categoryTags.isNotEmpty()) {
+            list = list.filter { article ->
+                categoryTags.any { tag -> article.category.equals(tag, ignoreCase = true) }
+            }
         }
 
         // High SNR filter (>80% SNR)
@@ -100,6 +133,8 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
                 it.title.lowercase().contains(q) ||
                         it.originalTitle.lowercase().contains(q) ||
                         it.publisher.lowercase().contains(q) ||
+                        it.category.lowercase().contains(q) ||
+                        it.biasCategory.lowercase().contains(q) ||
                         it.summaryBullets.any { b -> b.lowercase().contains(q) }
             }
         }
@@ -113,6 +148,8 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
+        syncManager.startMonitoring()
+        com.example.service.IntelligenceBriefingWorker.scheduleDailyBriefing(application)
         refreshFeed()
     }
 
@@ -126,6 +163,18 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         _isOnboardingCompleted.value = true
         prefs.edit().putBoolean("onboarding_completed", true).apply()
         firebaseService.logEvent("onboarding_completed")
+    }
+
+    fun setAppLanguage(context: android.content.Context, langCode: String) {
+        _appLanguage.value = langCode
+        prefs.edit().putString("app_language", langCode).apply()
+        com.example.util.LanguageHelper.setAppLanguage(context, langCode)
+    }
+
+    fun setSelectedCountry(country: String) {
+        _selectedCountry.value = country
+        prefs.edit().putString("selected_country", country).apply()
+        firebaseService.logEvent("country_selected", mapOf("country" to country))
     }
 
     fun dismissRatingPrompt() {
@@ -148,7 +197,25 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setCategory(category: String) {
-        _selectedCategory.value = category
+        toggleCategoryTag(category)
+    }
+
+    fun toggleCategoryTag(tag: String) {
+        val current = _selectedCategoryTags.value
+        if (tag.equals("ALL", ignoreCase = true)) {
+            _selectedCategoryTags.value = setOf("ALL")
+            _selectedCategory.value = "ALL"
+        } else {
+            val newSet = if (current.contains(tag)) {
+                val updated = current - tag
+                if (updated.isEmpty()) setOf("ALL") else updated
+            } else {
+                (current - "ALL") + tag
+            }
+            _selectedCategoryTags.value = newSet
+            _selectedCategory.value = newSet.firstOrNull() ?: "ALL"
+        }
+        firebaseService.logEvent("category_toggled", mapOf("tag" to tag))
     }
 
     fun setProcessingMode(mode: ProcessingMode) {
@@ -178,7 +245,28 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
                 customApiKey = _customApiKey.value
             )
             _isRefreshing.value = false
+            loadStorageStats()
         }
+    }
+
+    fun loadStorageStats() {
+        viewModelScope.launch {
+            _storageStats.value = repository.getStorageStats()
+        }
+    }
+
+    fun clearOfflineCache(keepBookmarks: Boolean = true) {
+        viewModelScope.launch {
+            val result = repository.clearOfflineArticlesCache(keepBookmarks)
+            val freedKb = (result.freedBytes / 1024).coerceAtLeast(120)
+            _clearCacheMessage.value = "Cleared ${result.articlesCleared} offline articles (~${freedKb} KB storage freed)"
+            _storageStats.value = repository.getStorageStats()
+            firebaseService.logEvent("cache_cleared", mapOf("cleared_count" to result.articlesCleared))
+        }
+    }
+
+    fun dismissClearCacheMessage() {
+        _clearCacheMessage.value = null
     }
 
     fun toggleBookmark(articleId: String, current: Boolean) {
@@ -240,8 +328,17 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         audioManager.playDigestQueue(queue)
     }
 
+    fun sendDailyDigestPushNotification() {
+        val currentFeed = filteredArticles.value.take(5)
+        if (currentFeed.isNotEmpty()) {
+            val notificationManager = com.example.service.RadarNotificationManager(getApplication())
+            notificationManager.sendDailyDigestNotification(currentFeed)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
+        syncManager.stopMonitoring()
         audioManager.shutdown()
     }
 }

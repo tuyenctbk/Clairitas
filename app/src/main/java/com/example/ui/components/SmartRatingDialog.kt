@@ -87,7 +87,7 @@ fun SmartRatingDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Bạn hài lòng với Claritas?",
+                    text = "Are you enjoying Sift?",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -96,7 +96,7 @@ fun SmartRatingDialog(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Lọc nhiễu tin tức chuẩn mực • 0 Quảng cáo • Trợ lý AI tóm tắt thông minh",
+                    text = "High-signal news filtering • 0 Ads • Smart AI Summarization",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -136,7 +136,7 @@ fun SmartRatingDialog(
                         .fillMaxWidth()
                         .testTag("submit_rating_button")
                 ) {
-                    Text("Đánh giá $selectedStars sao")
+                    Text("Rate $selectedStars stars")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -147,11 +147,11 @@ fun SmartRatingDialog(
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Trải nghiệm Claritas News - Ứng dụng đọc tin tức tóm tắt thông minh, lọc nhiễu SNR >80% & 0 quảng cáo!"
+                                "Experience Sift News - Smart summarized news, SNR >80% & 0 ads!"
                             )
                             type = "text/plain"
                         }
-                        context.startActivity(Intent.createChooser(sendIntent, "Chia sẻ Claritas News"))
+                        context.startActivity(Intent.createChooser(sendIntent, "Share Sift News"))
                     },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
@@ -164,7 +164,7 @@ fun SmartRatingDialog(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Chia sẻ cho bạn bè")
+                    Text("Share with friends")
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -174,7 +174,7 @@ fun SmartRatingDialog(
                     modifier = Modifier.testTag("dismiss_rating_button")
                 ) {
                     Text(
-                        text = "Để sau",
+                        text = "Later",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )

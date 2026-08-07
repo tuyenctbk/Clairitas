@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -85,43 +86,46 @@ data class OnboardingPageData(
 @OptIn(ExperimentalAnimationApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    onFinish: (ProcessingMode, String) -> Unit,
+    onFinish: (ProcessingMode, String, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var selectedMode by remember { mutableStateOf(ProcessingMode.SUPER_FAST) }
     var apiKeyInput by remember { mutableStateOf("") }
+    var selectedCountry by remember { mutableStateOf("Global / International (English)") }
+    var onboardingLanguageCode by remember { mutableStateOf("en") }
     val coroutineScope = rememberCoroutineScope()
 
     val pages = listOf(
         OnboardingPageData(
-            badge = "CHỐNG TIN RÁC & TRỤC LỢI",
-            title = "Lọc Sạch Clickbait • Đo Lường Tín Hiệu SNR",
-            subtitle = "Trải nghiệm nguồn tin tức tinh khiết thực sự",
-            description = "Claritas ứng dụng thuật toán trí tuệ nhân tạo để đo lường tỷ lệ thông tin sạch (SNR Score > 80%). Loại bỏ 100% các tiêu đề giật gân, quảng cáo chen ngang & tin tức rác lặp lại.",
+            badge = "ANTI-CLICKBAIT & HIGH SIGNAL",
+            title = "Purify Your News Feed • High SNR Scoring",
+            subtitle = "Experience truly clean, high-signal journalism",
+            description = "Sift uses AI to measure information signal quality (SNR Score > 80%). Eliminates 100% of clickbait headlines, banner ads, and repetitive noise.",
             icon = Icons.Default.Shield,
             primaryColor = MaterialTheme.colorScheme.primary
         ),
         OnboardingPageData(
-            badge = "TIẾT KIỆM THỜI GIAN",
-            title = "Nghe Bản Tin Tóm Tắt Morning Audio Digest",
-            subtitle = "Lắng nghe tin tức chất lượng cao trong 3 phút",
-            description = "Tiết kiệm hàng giờ lướt web mỗi ngày. Chỉ cần bật Audio Digest, Claritas sẽ tóm tắt & chuyển đổi giọng nói chuẩn cho 5 bài viết quan trọng nhất theo đúng tốc độ bạn muốn.",
+            badge = "SAVE TIME & RADAR",
+            title = "3-Minute Audio Digest & Keyword Radar",
+            subtitle = "Listen to top curated stories on the go",
+            description = "Save hours of daily web browsing. Play the Audio Digest for voice-narrated summaries and set custom keyword traps to catch critical market movements instantly.",
             icon = Icons.Default.Headphones,
             primaryColor = Color(0xFF10B981) // Emerald Green
         ),
         OnboardingPageData(
-            badge = "SĂN TIN CHỦ ĐỘNG",
-            title = "Thiết Lập Radar Săn Tin Không Bỏ Sót",
-            subtitle = "Hệ thống tự động quét & đẩy cảnh báo tức thì",
-            description = "Chỉ cần cài đặt các từ khóa bạn quan tâm (như Lãi suất, Cổ phiếu FPT, Tỷ giá). Khi phát hiện luồng tin tức sạch tương thích, Radar sẽ phát chuông cảnh báo ngay lập tức.",
+            badge = "COUNTRY & REGION",
+            title = "Select Your Nation & Region",
+            subtitle = "Tailor news feeds for your region of interest",
+            description = "Choose your primary country or region to curate customized global and local news feeds.",
             icon = Icons.Default.Radar,
             primaryColor = Color(0xFFF59E0B) // Amber/Yellow
         ),
         OnboardingPageData(
-            badge = "CẤU HÌNH TRẢI NGHIỆM",
-            title = "Cá Nhân Hóa Trí Tuệ Nhân Tạo Phân Tích",
-            subtitle = "Lựa chọn phương thức tóm tắt thông minh",
-            description = "Chọn chế độ thuật toán xử lý tin phù hợp với bạn. Claritas hỗ trợ cả xử lý ngoại tuyến miễn phí lẫn điện toán đám mây cao cấp qua khóa Gemini cá nhân của riêng bạn.",
+            badge = "AI INTELLIGENCE",
+            title = "Personalize AI Analysis Mode",
+            subtitle = "Choose your preferred processing mode",
+            description = "Select your AI processing algorithm. Sift supports free offline local processing and high-end cloud intelligence via your personal Gemini key.",
             icon = Icons.Default.AutoAwesome,
             primaryColor = MaterialTheme.colorScheme.primary
         )
@@ -177,7 +181,7 @@ fun OnboardingScreen(
                                 Spacer(modifier = Modifier.height(24.dp))
 
                                 Text(
-                                    text = "CLARITAS INTELLIGENCE",
+                                    text = "SIFT INTELLIGENCE",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = pageData.primaryColor,
                                     fontWeight = FontWeight.Bold,
@@ -210,7 +214,14 @@ fun OnboardingScreen(
                                     selectedMode = selectedMode,
                                     onModeSelected = { selectedMode = it },
                                     apiKeyInput = apiKeyInput,
-                                    onApiKeyChanged = { apiKeyInput = it }
+                                    onApiKeyChanged = { apiKeyInput = it },
+                                    selectedCountry = selectedCountry,
+                                    onCountrySelected = { selectedCountry = it },
+                                    onboardingLanguageCode = onboardingLanguageCode,
+                                    onLanguageCodeChanged = { lang ->
+                                        onboardingLanguageCode = lang
+                                        com.example.util.LanguageHelper.setAppLanguage(context, lang)
+                                    }
                                 )
                             }
                         }
@@ -254,7 +265,14 @@ fun OnboardingScreen(
                                     selectedMode = selectedMode,
                                     onModeSelected = { selectedMode = it },
                                     apiKeyInput = apiKeyInput,
-                                    onApiKeyChanged = { apiKeyInput = it }
+                                    onApiKeyChanged = { apiKeyInput = it },
+                                    selectedCountry = selectedCountry,
+                                    onCountrySelected = { selectedCountry = it },
+                                    onboardingLanguageCode = onboardingLanguageCode,
+                                    onLanguageCodeChanged = { lang ->
+                                        onboardingLanguageCode = lang
+                                        com.example.util.LanguageHelper.setAppLanguage(context, lang)
+                                    }
                                 )
                             }
                         }
@@ -283,7 +301,7 @@ fun OnboardingScreen(
                             pagerState.animateScrollToPage(currentPage + 1)
                         }
                     } else {
-                        onFinish(selectedMode, apiKeyInput)
+                        onFinish(selectedMode, apiKeyInput, selectedCountry, onboardingLanguageCode)
                     }
                 }
             )
@@ -300,7 +318,11 @@ fun OnboardingDetails(
     selectedMode: ProcessingMode,
     onModeSelected: (ProcessingMode) -> Unit,
     apiKeyInput: String,
-    onApiKeyChanged: (String) -> Unit
+    onApiKeyChanged: (String) -> Unit,
+    selectedCountry: String,
+    onCountrySelected: (String) -> Unit,
+    onboardingLanguageCode: String,
+    onLanguageCodeChanged: (String) -> Unit
 ) {
     Column {
         // Upper Badge Indicator
@@ -351,11 +373,104 @@ fun OnboardingDetails(
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        // Render Country Selection on slide 2 (index 2)
+        if (currentPage == 2) {
+            Column {
+                Text(
+                    text = "Select Country / Region:",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val countries = listOf(
+                    "Global / International (English)",
+                    "United States (US)",
+                    "United Kingdom (UK)",
+                    "Europe (EU)",
+                    "Singapore / Asia-Pacific (APAC)",
+                    "Vietnam (VN)"
+                )
+                countries.forEach { country ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (selectedCountry == country) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .border(
+                                width = 1.dp,
+                                color = if (selectedCountry == country) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable { onCountrySelected(country) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = country,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (selectedCountry == country) FontWeight.Bold else FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = "Select Default App Language:",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                val onboardingLangs = listOf(
+                    "English" to "en",
+                    "Vietnamese" to "vi",
+                    "Spanish" to "es",
+                    "French" to "fr",
+                    "German" to "de",
+                    "Japanese" to "ja"
+                )
+
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    onboardingLangs.forEach { (langName, langCode) ->
+                        val isLangSelected = onboardingLanguageCode == langCode
+                        androidx.compose.material3.InputChip(
+                            selected = isLangSelected,
+                            onClick = {
+                                onLanguageCodeChanged(langCode)
+                            },
+                            label = { Text(text = langName, fontSize = 12.sp) },
+                            leadingIcon = if (isLangSelected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Selected",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            } else null
+                        )
+                    }
+                }
+            }
+        }
+
         // Render interactive config fields only on slide 3 (index 3)
         if (currentPage == 3) {
             Column {
                 Text(
-                    text = "Lựa chọn Chế độ Thuật toán:",
+                    text = "Select AI Processing Mode:",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -395,7 +510,7 @@ fun OnboardingDetails(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Thuật toán NLP cục bộ gọn nhẹ (0.01s, 100% offline, miễn phí)",
+                                text = "Lightweight local NLP (0.01s, 100% offline, free)",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -438,7 +553,7 @@ fun OnboardingDetails(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Sử dụng mô hình Gemini 1.5 Pro phân tích chuyên sâu chống clickbait cực đỉnh",
+                                text = "Advanced Gemini 1.5 Pro deep analysis & anti-clickbait",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -449,7 +564,7 @@ fun OnboardingDetails(
                 AnimatedVisibility(visible = selectedMode == ProcessingMode.BYOK_CLOUD) {
                     Column(modifier = Modifier.padding(top = 10.dp)) {
                         Text(
-                            text = "Nhập khóa API Gemini của bạn (Tùy chọn - Có thể nhập sau):",
+                            text = "Enter your Gemini API Key (Optional - Can add later):",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
@@ -490,7 +605,7 @@ fun OnboardingNavigationRow(
         Box(modifier = Modifier.width(72.dp)) {
             if (currentPage > 0) {
                 Text(
-                    text = "Quay lại",
+                    text = "Back",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium,
@@ -531,7 +646,7 @@ fun OnboardingNavigationRow(
                 .testTag("onboarding_next_btn")
         ) {
             Text(
-                text = if (currentPage == totalPages - 1) "Bắt đầu" else "Tiếp",
+                text = if (currentPage == totalPages - 1) "Start" else "Next",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )

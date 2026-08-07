@@ -1,10 +1,10 @@
 package com.example.ui.theme
 
 /**
- * Supported UI theme modes for Claritas News application.
+ * Supported UI theme modes for Sift News application.
  */
 enum class ThemeMode(val displayName: String, val description: String) {
-    SYSTEM("Hệ thống (Tự động)", "Tự động đổi giao diện theo cài đặt thiết bị"),
-    LIGHT("Giao diện Sáng (Light)", "Tone sáng tinh khôi, tương phản cao ban ngày"),
-    DARK("Giao diện Tối (Dark)", "Tone màu tối dịu mắt, tiết kiệm pin & bảo vệ mắt")
+    SYSTEM("System (Automatic)", "Follow device system theme settings"),
+    LIGHT("Light Theme", "Clean light tones with high contrast for daytime"),
+    DARK("Dark Theme", "Eye-friendly dark tones, saves battery in dark environments")
 }

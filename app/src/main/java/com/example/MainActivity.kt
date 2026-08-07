@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,7 +59,7 @@ import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.NewsRadarScreen
 import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.SettingsScreen
-import com.example.ui.theme.ClaritasTheme
+import com.example.ui.theme.SiftTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -68,23 +69,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Apply saved language locale on startup
+        com.example.util.LanguageHelper.setAppLanguage(this, viewModel.appLanguage.value)
+
         setContent {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
-            ClaritasTheme(themeMode = themeMode) {
+            val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
+            SiftTheme(themeMode = themeMode) {
                 val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
 
                 if (!isOnboardingCompleted) {
                     OnboardingScreen(
-                        onFinish = { selectedMode, apiKey ->
+                        onFinish = { selectedMode, apiKey, country, langCode ->
                             viewModel.setProcessingMode(selectedMode)
                             if (apiKey.isNotBlank()) {
                                 viewModel.setCustomApiKey(apiKey)
                             }
+                            viewModel.setSelectedCountry(country)
+                            viewModel.setAppLanguage(this@MainActivity, langCode)
                             viewModel.completeOnboarding()
                         }
                     )
                 } else {
-                    ClaritasApp(viewModel = viewModel)
+                    SiftApp(viewModel = viewModel)
                 }
             }
         }
@@ -92,7 +99,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ClaritasApp(viewModel: NewsViewModel) {
+fun SiftApp(viewModel: NewsViewModel) {
+    val context = LocalContext.current
     var currentTab by remember { mutableStateOf(NavTab.HOME) }
     var selectedArticleForDetail by remember { mutableStateOf<Article?>(null) }
 
@@ -101,13 +109,19 @@ fun ClaritasApp(viewModel: NewsViewModel) {
     val keywordTraps by viewModel.keywordTraps.collectAsStateWithLifecycle()
     val timeBudget by viewModel.selectedTimeBudget.collectAsStateWithLifecycle()
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val selectedCategoryTags by viewModel.selectedCategoryTags.collectAsStateWithLifecycle()
     val processingMode by viewModel.selectedProcessingMode.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val onlyHighSnr by viewModel.onlyHighSnr.collectAsStateWithLifecycle()
     val customApiKey by viewModel.customApiKey.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val syncInfo by viewModel.syncInfo.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val showRatingPrompt by viewModel.showRatingPrompt.collectAsStateWithLifecycle()
+    val storageStats by viewModel.storageStats.collectAsStateWithLifecycle()
+    val clearCacheMessage by viewModel.clearCacheMessage.collectAsStateWithLifecycle()
+    val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
+    val intelligenceBriefingSummary by viewModel.intelligenceBriefingSummary.collectAsStateWithLifecycle()
 
     val playbackState by viewModel.audioManager.playbackState.collectAsStateWithLifecycle()
     val currentAudioTitle by viewModel.audioManager.currentTitle.collectAsStateWithLifecycle()
@@ -156,7 +170,7 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.Default.Shield,
-                            contentDescription = "Claritas Shield Logo",
+                            contentDescription = "Sift Shield Logo",
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                 .padding(10.dp)
@@ -216,7 +230,8 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                             viewModel.toggleBookmark(article.id, article.isBookmarked)
                             selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
                         },
-                        onPlayAudio = { article -> viewModel.playArticleAudio(article) }
+                        onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                        customApiKey = customApiKey
                     )
                 } else {
                     // Tab Content (Tablet embeds detail side-by-side under HOME tab)
@@ -231,12 +246,16 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                             articles = filteredArticles,
                                             timeBudget = timeBudget,
                                             selectedCategory = selectedCategory,
+                                            selectedCategoryTags = selectedCategoryTags,
                                             processingMode = processingMode,
                                             searchQuery = searchQuery,
                                             isRefreshing = isRefreshing,
                                             onlyHighSnr = onlyHighSnr,
+                                            syncInfo = syncInfo,
+                                            intelligenceBriefingSummary = intelligenceBriefingSummary,
                                             onTimeBudgetChanged = { viewModel.setTimeBudget(it) },
                                             onCategoryChanged = { viewModel.setCategory(it) },
+                                            onToggleCategoryTag = { viewModel.toggleCategoryTag(it) },
                                             onSearchQueryChanged = { viewModel.setSearchQuery(it) },
                                             onToggleOnlyHighSnr = { viewModel.toggleOnlyHighSnr() },
                                             onRefresh = { viewModel.refreshFeed() },
@@ -245,7 +264,8 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                                 selectedArticleForDetail = article
                                             },
                                             onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                            onPlayAudio = { article -> viewModel.playArticleAudio(article) }
+                                            onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                                            onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() }
                                         )
                                     }
 
@@ -267,7 +287,8 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                                     viewModel.toggleBookmark(article.id, article.isBookmarked)
                                                     selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
                                                 },
-                                                onPlayAudio = { article -> viewModel.playArticleAudio(article) }
+                                                onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                                                customApiKey = customApiKey
                                             )
                                         } else {
                                             TabletWelcomePlaceholder()
@@ -280,12 +301,15 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                     articles = filteredArticles,
                                     timeBudget = timeBudget,
                                     selectedCategory = selectedCategory,
+                                    selectedCategoryTags = selectedCategoryTags,
                                     processingMode = processingMode,
                                     searchQuery = searchQuery,
                                     isRefreshing = isRefreshing,
                                     onlyHighSnr = onlyHighSnr,
+                                    intelligenceBriefingSummary = intelligenceBriefingSummary,
                                     onTimeBudgetChanged = { viewModel.setTimeBudget(it) },
                                     onCategoryChanged = { viewModel.setCategory(it) },
+                                    onToggleCategoryTag = { viewModel.toggleCategoryTag(it) },
                                     onSearchQueryChanged = { viewModel.setSearchQuery(it) },
                                     onToggleOnlyHighSnr = { viewModel.toggleOnlyHighSnr() },
                                     onRefresh = { viewModel.refreshFeed() },
@@ -294,7 +318,9 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                         selectedArticleForDetail = article
                                     },
                                     onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                    onPlayAudio = { article -> viewModel.playArticleAudio(article) }
+                                    onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                                    onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() },
+                                    syncInfo = syncInfo
                                 )
                             }
                         }
@@ -367,10 +393,18 @@ fun ClaritasApp(viewModel: NewsViewModel) {
                                         currentProcessingMode = processingMode,
                                         customApiKey = customApiKey,
                                         currentThemeMode = themeMode,
+                                        currentLanguageCode = appLanguage,
+                                        onLanguageCodeChanged = { viewModel.setAppLanguage(context, it) },
+                                        syncInfo = syncInfo,
+                                        storageStats = storageStats,
+                                        clearCacheMessage = clearCacheMessage,
                                         onProcessingModeChanged = { viewModel.setProcessingMode(it) },
                                         onCustomApiKeySaved = { viewModel.setCustomApiKey(it) },
                                         onThemeModeChanged = { viewModel.setThemeMode(it) },
-                                        onTriggerRatingPrompt = { viewModel.submitAppRating(5) }
+                                        onTriggerSync = { viewModel.refreshFeed() },
+                                        onSendTestDailyDigest = { viewModel.sendDailyDigestPushNotification() },
+                                        onClearOfflineCache = { keepBookmarks -> viewModel.clearOfflineCache(keepBookmarks) },
+                                        onDismissClearCacheMsg = { viewModel.dismissClearCacheMessage() }
                                     )
                                 }
                             }
@@ -421,7 +455,7 @@ fun TabletWelcomePlaceholder() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Shield,
-                    contentDescription = "Claritas",
+                    contentDescription = "Sift",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(18.dp)
@@ -430,7 +464,7 @@ fun TabletWelcomePlaceholder() {
             }
             Spacer(modifier = Modifier.height(18.dp))
             Text(
-                text = "Chào mừng bạn đến với Claritas News",
+                text = "Welcome to Sift News",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -438,7 +472,7 @@ fun TabletWelcomePlaceholder() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Hệ thống tóm tắt tin tức AI an toàn, chống clickbait & 0 quảng cáo. Hãy chạm vào một bài viết bất kỳ ở cột bên trái để bắt đầu đọc tóm tắt và phân tích chỉ số SNR.",
+                text = "Secure AI-powered news summarization, anti-clickbait & 0 ads. Select any article on the left column to begin reading summaries and SNR analysis.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

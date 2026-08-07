@@ -48,7 +48,7 @@ object TextRankSummarizer {
             .map { it.trim() }
             .filter { it.length > 20 && !it.contains("http") }
 
-        if (sentences.isEmpty()) return listOf("Tóm tắt nhanh đang được cập nhật.")
+        if (sentences.isEmpty()) return listOf("Quick summary is currently updating.")
         if (sentences.size <= 3) return sentences
 
         // Calculate word frequency map
@@ -120,11 +120,11 @@ object TextRankSummarizer {
     fun determineBiasCategory(snrScore: Float, content: String): String {
         val lower = content.lowercase(Locale.getDefault())
         return when {
-            snrScore > 0.80f -> "Dữ liệu thực tế (Factual Data)"
-            lower.contains("dự báo") || lower.contains("phân tích") || lower.contains("chuyên gia") -> "Phân tích thị trường (Market Analysis)"
-            lower.contains("ý kiến") || lower.contains("cho rằng") || lower.contains("quan điểm") -> "Góc nhìn cá nhân (Opinion)"
-            snrScore < 0.50f -> "Nội dung suy đoán / Hype (Speculative)"
-            else -> "Thông tin khách quan (Neutral Fact)"
+            snrScore > 0.80f -> "Factual Data"
+            lower.contains("forecast") || lower.contains("analysis") || lower.contains("expert") || lower.contains("dự báo") || lower.contains("phân tích") -> "Market Analysis"
+            lower.contains("opinion") || lower.contains("view") || lower.contains("believe") || lower.contains("ý kiến") -> "Opinion / Perspective"
+            snrScore < 0.50f -> "Speculative / Hype"
+            else -> "Neutral Fact"
         }
     }
 

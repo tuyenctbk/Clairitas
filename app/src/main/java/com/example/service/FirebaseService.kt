@@ -10,7 +10,7 @@ import android.util.Log
 class FirebaseService private constructor(private val context: Context) {
 
     companion object {
-        private const val TAG = "ClaritasFirebase"
+        private const val TAG = "SiftFirebase"
 
         @Volatile
         private var INSTANCE: FirebaseService? = null
@@ -27,7 +27,7 @@ class FirebaseService private constructor(private val context: Context) {
     data class RemoteConfigValues(
         val minSnrThreshold: Float = 0.80f,
         val enableAudioDigest: Boolean = true,
-        val announcementBannerText: String = "⚡ Claritas Intelligence: Phân tích SNR chuẩn mực • 0 Quảng cáo",
+        val announcementBannerText: String = "⚡ Sift Intelligence: High Signal-to-Noise Ratio • 100% Ad-Free",
         val autoPromptRatingAfterArticles: Int = 3
     )
 

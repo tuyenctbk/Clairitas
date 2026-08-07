@@ -73,12 +73,12 @@ fun BookmarksScreen(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "Tin Tức Đã Lưu Offline",
+                    text = "Saved Offline Articles",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${bookmarkedArticles.size} bài viết lưu trữ trên thiết bị",
+                    text = "${bookmarkedArticles.size} articles stored on device",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -121,14 +121,14 @@ fun BookmarksScreen(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
                         Text(
-                            text = "Chưa có bài viết nào được lưu",
+                            text = "No saved articles yet",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Chạm vào biểu tượng Bookmark 🔖 trên các thẻ bài viết để lưu trữ đọc ngoại mạng bất cứ lúc nào.",
+                            text = "Tap the bookmark icon 🔖 on any article card to save it for offline reading anytime.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center

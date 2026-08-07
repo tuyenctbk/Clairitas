@@ -96,7 +96,7 @@ fun AudioDigestScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Bản tin nói tổng hợp 3 phút • Giọng đọc Android Native TTS",
+                    text = "3-Minute Audio Briefing • Native TTS Engine",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -126,7 +126,7 @@ fun AudioDigestScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Bản Tin Radio Tóm Tắt Sáng & Chiều",
+                        text = "Daily Morning & Evening Radio Briefing",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -136,7 +136,7 @@ fun AudioDigestScreen(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Lắng nghe 5 tin tức quan trọng nhất hôm nay với tóm tắt 3 điểm cốt lõi, phù hợp khi đi xe, tập thể thao.",
+                    text = "Listen to today's top 5 essential news summaries with 3-bullet core takeaways. Perfect for commuting and workouts.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -164,7 +164,7 @@ fun AudioDigestScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (playbackState == PlaybackState.PLAYING) "Tạm Dừng Bản Tin" else "▶ Phát Bản Tin 3 Phút Ngay",
+                            text = if (playbackState == PlaybackState.PLAYING) "Pause Briefing" else "▶ Play 3-Min Briefing Now",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -179,7 +179,7 @@ fun AudioDigestScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Tốc độ đọc: ",
+                        text = "Playback Speed: ",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -209,7 +209,7 @@ fun AudioDigestScreen(
 
         // Queue Items Header
         Text(
-            text = "Danh Sách Đọc Trong Bản Tin (${queueArticles.size} tin):",
+            text = "Briefing Playlist (${queueArticles.size} stories):",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold
         )

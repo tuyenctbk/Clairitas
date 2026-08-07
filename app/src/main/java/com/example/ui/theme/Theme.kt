@@ -26,11 +26,11 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ClaritasCyanPrimary,
+    primary = SiftCyanPrimary,
     onPrimary = Color.White,
-    primaryContainer = ClaritasCyanContainer,
+    primaryContainer = SiftCyanContainer,
     onPrimaryContainer = Color(0xFF075985),
-    secondary = ClaritasEmeraldSignal,
+    secondary = SiftEmeraldSignal,
     background = LightSurface,
     surface = LightSurface,
     surfaceVariant = LightSurfaceVariant,
@@ -40,7 +40,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun ClaritasTheme(
+fun SiftTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = when (themeMode) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -63,9 +63,9 @@ fun ClaritasTheme(
 }
 
 @Composable
-fun MyApplicationTheme(
+fun SiftNewsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
-) = ClaritasTheme(darkTheme = darkTheme, dynamicColor = dynamicColor, content = content)
+) = SiftTheme(darkTheme = darkTheme, dynamicColor = dynamicColor, content = content)
 

@@ -90,16 +90,16 @@ class AudioDigestManager(context: Context) : TextToSpeech.OnInitListener {
         _currentTitle.value = item.title
 
         val speechText = StringBuilder()
-            .append("Bản tin Claritas từ ").append(item.publisher).append(". ")
-            .append("Tiêu đề: ").append(item.title).append(". ")
-            .append("Tóm tắt 3 điểm chính: ")
+            .append("Sift news briefing from ").append(item.publisher).append(". ")
+            .append("Headline: ").append(item.title).append(". ")
+            .append("Three key takeaways: ")
 
         item.bullets.forEachIndexed { idx, bullet ->
-            speechText.append("Điểm ").append(idx + 1).append(": ").append(bullet).append(". ")
+            speechText.append("Point ").append(idx + 1).append(": ").append(bullet).append(". ")
         }
 
         tts?.setSpeechRate(_currentSpeechSpeed.value)
-        tts?.speak(speechText.toString(), TextToSpeech.QUEUE_FLUSH, null, "CLARITAS_UTTERANCE_$currentItemIndex")
+        tts?.speak(speechText.toString(), TextToSpeech.QUEUE_FLUSH, null, "SIFT_UTTERANCE_$currentItemIndex")
         _playbackState.value = PlaybackState.PLAYING
     }
 

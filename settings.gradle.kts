@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Claritas"
+rootProject.name = "Sift"
 
 include(":app")

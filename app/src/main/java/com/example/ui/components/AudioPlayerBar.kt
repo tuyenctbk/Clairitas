@@ -95,13 +95,13 @@ fun AudioPlayerBar(
 
                         Column {
                             Text(
-                                text = "Đang phát audio bản tin",
+                                text = "Playing audio digest",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = currentTitle.ifBlank { "Bản tin tổng hợp Claritas" },
+                                text = currentTitle.ifBlank { "Sift Daily Audio Digest" },
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
@@ -168,7 +168,7 @@ fun AudioPlayerBar(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Đóng audio",
+                                contentDescription = "Close audio",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )

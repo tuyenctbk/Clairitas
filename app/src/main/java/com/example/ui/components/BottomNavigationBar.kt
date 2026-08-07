@@ -26,11 +26,11 @@ enum class NavTab(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    HOME("home", "Tin Báo", Icons.Filled.Home, Icons.Outlined.Home),
-    RADAR("radar", "Săn Tin", Icons.Filled.Radar, Icons.Outlined.Radar),
-    AUDIO("audio", "Audio Digest", Icons.Filled.Headphones, Icons.Outlined.Headphones),
-    BOOKMARKS("bookmarks", "Đã Lưu", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
-    SETTINGS("settings", "Cài Đặt", Icons.Filled.Settings, Icons.Outlined.Settings)
+    HOME("home", "Feed", Icons.Filled.Home, Icons.Outlined.Home),
+    RADAR("radar", "Radar", Icons.Filled.Radar, Icons.Outlined.Radar),
+    AUDIO("audio", "Audio", Icons.Filled.Headphones, Icons.Outlined.Headphones),
+    BOOKMARKS("bookmarks", "Saved", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+    SETTINGS("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
 }
 
 @Composable

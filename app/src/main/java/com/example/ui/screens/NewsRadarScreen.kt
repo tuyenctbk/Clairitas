@@ -98,12 +98,12 @@ fun NewsRadarScreen(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "Săn Tin (News Radar Engine)",
+                    text = "News Radar Engine",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Đặt bẫy từ khóa • Cảnh báo đẩy tức thì khi có tin nóng",
+                    text = "Keyword traps & instant push alert triggers",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -122,7 +122,7 @@ fun NewsRadarScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "➕ Tạo bẫy săn tin mới:",
+                    text = "➕ Create New Keyword Trap:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -137,7 +137,7 @@ fun NewsRadarScreen(
                         onValueChange = { newKeywordInput = it },
                         placeholder = { 
                             Text(
-                                "VD: Lãi suất, Cổ phiếu FPT, Tỷ giá...",
+                                "e.g. Interest rate, AI Tech, Federal Reserve...",
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             ) 
@@ -170,14 +170,14 @@ fun NewsRadarScreen(
 
                 // Suggested Keywords Row
                 Text(
-                    text = "Gợi ý từ khóa quan tâm:",
+                    text = "Suggested radar keywords:",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
-                val suggestions = listOf("Lãi suất", "Bất động sản", "Tỷ giá", "Công nghệ AI", "Chứng khoán", "Thần tốc")
+                val suggestions = listOf("Interest rate", "Real Estate", "Semiconductor", "AI Tech", "Stock market", "Central Bank")
                 androidx.compose.foundation.lazy.LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -202,7 +202,7 @@ fun NewsRadarScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "🎯 Danh sách bẫy tin đang hoạt động (${keywordTraps.size}):",
+                text = "🎯 Active Keyword Traps (${keywordTraps.size}):",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -218,7 +218,7 @@ fun NewsRadarScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Quét Ngay", fontSize = 12.sp)
+                    Text("Scan Now", fontSize = 12.sp)
                 }
             }
         }
@@ -227,7 +227,7 @@ fun NewsRadarScreen(
 
         if (keywordTraps.isEmpty()) {
             Text(
-                text = "Chưa có bẫy tin nào. Hãy nhập từ khóa quan tâm ở trên (ví dụ: 'Thủ Đức', 'Fed', 'Bán dẫn').",
+                text = "No active keyword traps yet. Enter a topic or keyword above to start tracking.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -266,7 +266,7 @@ fun NewsRadarScreen(
                                     color = MaterialTheme.colorScheme.primaryContainer
                                 ) {
                                     Text(
-                                        text = "${trap.matchCount} khớp",
+                                        text = "${trap.matchCount} matched",
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
@@ -284,7 +284,7 @@ fun NewsRadarScreen(
                                 IconButton(onClick = { onDeleteTrap(trap.id) }) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = "Xóa bẫy",
+                                        contentDescription = "Delete trap",
                                         tint = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -300,7 +300,7 @@ fun NewsRadarScreen(
 
         // Matched Timeline Articles Section
         Text(
-            text = "🚨 Tin Tức Săn Lùng Được (${matchedArticles.size}):",
+            text = "🚨 Matched Radar Articles (${matchedArticles.size}):",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold
         )
@@ -314,7 +314,7 @@ fun NewsRadarScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             ) {
                 Text(
-                    text = "Chưa có tin tức nào trùng khớp với bẫy săn tin. Khi có bài viết mới chứa từ khóa của bạn, hệ thống sẽ phát cảnh báo đẩy ngay lập tức!",
+                    text = "No articles matched your keyword traps yet. When new articles matching your keywords arrive, push alerts will be triggered instantly!",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)

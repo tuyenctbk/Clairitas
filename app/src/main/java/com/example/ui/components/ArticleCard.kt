@@ -94,7 +94,7 @@ fun ArticleCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "🎯 Săn Tin: ${article.matchedTrapKeywords.joinToString(", ")}",
+                            text = "🎯 Radar Match: ${article.matchedTrapKeywords.joinToString(", ")}",
                             color = Color(0xFFDC2626),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -110,7 +110,7 @@ fun ArticleCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "${article.publisher} • ${article.timeEstimateMinutes} phút đọc",
+                    text = "${article.publisher} • ${article.timeEstimateMinutes} min read",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -143,7 +143,7 @@ fun ArticleCard(
                         .padding(vertical = 2.dp)
                 ) {
                     Text(
-                        text = if (showOriginalTitle) "Ẩn tiêu đề gốc clickbait" else "Xem tiêu đề gốc clickbait",
+                        text = if (showOriginalTitle) "Hide raw headline" else "View raw headline",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp
@@ -158,7 +158,7 @@ fun ArticleCard(
 
                 AnimatedVisibility(visible = showOriginalTitle) {
                     Text(
-                        text = "Gốc: \"${article.originalTitle}\"",
+                        text = "Original: \"${article.originalTitle}\"",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontStyle = FontStyle.Italic,
                             fontSize = 12.sp
@@ -246,16 +246,16 @@ fun ArticleCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         onClick = {
-                            val shareText = "Claritas Intelligence Summary:\n" +
+                            val shareText = "Sift News Curation & Intelligence:\n" +
                                     "📌 ${article.title}\n\n" +
-                                    "⚡ Tóm tắt 3 điểm:\n" +
+                                    "⚡ 3-Bullet Summary:\n" +
                                     article.summaryBullets.joinToString("\n") { "• $it" } + "\n\n" +
-                                    "🔗 Nguồn (${article.publisher}): ${article.sourceUrl}"
+                                    "🔗 Source (${article.publisher}): ${article.sourceUrl}"
                             val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                 putExtra(Intent.EXTRA_TEXT, shareText)
                                 type = "text/plain"
                             }
-                            context.startActivity(Intent.createChooser(sendIntent, "Chia sẻ tin tức"))
+                            context.startActivity(Intent.createChooser(sendIntent, "Share News"))
                         },
                         modifier = Modifier
                             .size(36.dp)
@@ -263,7 +263,7 @@ fun ArticleCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Chia sẻ bài viết",
+                            contentDescription = "Share article",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
@@ -277,7 +277,7 @@ fun ArticleCard(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = "Nghe bản tin",
+                            contentDescription = "Listen to audio digest",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -291,7 +291,7 @@ fun ArticleCard(
                     ) {
                         Icon(
                             imageVector = if (article.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                            contentDescription = "Lưu bài viết",
+                            contentDescription = "Save article",
                             tint = if (article.isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )

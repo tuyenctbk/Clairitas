@@ -31,4 +31,13 @@ interface ArticleDao {
 
     @Query("DELETE FROM articles")
     suspend fun clearAll()
+
+    @Query("SELECT COUNT(*) FROM articles")
+    suspend fun getTotalArticlesCount(): Int
+
+    @Query("SELECT COUNT(*) FROM articles WHERE isBookmarked = 0")
+    suspend fun getUnbookmarkedArticlesCount(): Int
+
+    @Query("DELETE FROM articles WHERE isBookmarked = 0")
+    suspend fun clearUnbookmarkedArticles()
 }

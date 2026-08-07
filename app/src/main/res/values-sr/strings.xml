@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Claritas: Vesti Visokog SNR-a</string>
+    <string name="app_name">Sift: Vesti Visokog SNR-a</string>
     <string name="nav_home">Home</string>
     <string name="nav_radar">News Radar</string>
     <string name="nav_audio">Audio Digest</string>
@@ -27,7 +27,7 @@
     <string name="radar_title">Noise &amp; Trap Radar</string>
     <string name="audio_title">Audio Briefing Digest</string>
     <string name="article_detail_title">Article Analysis</string>
-    <string name="onboarding_title">Welcome to Claritas</string>
+    <string name="onboarding_title">Welcome to Sift</string>
     <string name="onboarding_subtitle">Signal-to-noise news curation &amp; intelligence</string>
     <string name="get_started">Get Started</string>
 </resources>

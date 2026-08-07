@@ -22,7 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -35,8 +37,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,303 +56,399 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Article
 import com.example.data.model.ProcessingMode
 import com.example.data.model.TimeBudget
+import com.example.service.BackgroundSyncInfo
 import com.example.ui.components.ArticleCard
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     articles: List<Article>,
     timeBudget: TimeBudget,
     selectedCategory: String,
+    selectedCategoryTags: Set<String> = setOf("ALL"),
     processingMode: ProcessingMode,
     searchQuery: String,
     isRefreshing: Boolean,
     onlyHighSnr: Boolean = false,
+    syncInfo: BackgroundSyncInfo = BackgroundSyncInfo(),
+    intelligenceBriefingSummary: String = "",
     onTimeBudgetChanged: (TimeBudget) -> Unit,
     onCategoryChanged: (String) -> Unit,
+    onToggleCategoryTag: (String) -> Unit = {},
     onSearchQueryChanged: (String) -> Unit,
     onToggleOnlyHighSnr: () -> Unit = {},
     onRefresh: () -> Unit,
     onArticleClick: (Article) -> Unit,
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
+    onPlayMorningDigest: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
-        "ALL" to "Tất Cả",
-        "Tech" to "Công Nghệ",
-        "Markets" to "Thị Trường",
-        "RealEstate" to "Bất Động Sản",
-        "Business" to "Kinh Doanh",
-        "Science" to "Khoa Học"
+        "ALL" to "All Topics",
+        "Tech" to "💻 Tech",
+        "Global" to "🌍 Global",
+        "Science" to "🔬 Science",
+        "Markets" to "📈 Markets",
+        "Business" to "💼 Business",
+        "RealEstate" to "🏢 Real Estate",
+        "AI" to "🤖 AI"
     )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .widthIn(max = 720.dp)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Row 1: Unified App Branding & Status & Refresh
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+    Scaffold(
+        topBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Shield,
-                        contentDescription = "Claritas Shield Logo",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier
-                            .padding(5.dp)
-                            .size(18.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "CLARITAS",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 1.sp,
-                                fontSize = 16.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Shield,
+                                    contentDescription = "Sift Shield Logo",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .size(14.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (processingMode == ProcessingMode.SUPER_FAST) "⚡ TextRank" else "✨ Gemini Cloud",
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                text = "SIFT",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = 1.sp,
+                                    fontSize = 15.sp
+                                ),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Search bar in the top app bar
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = onSearchQueryChanged,
+                                placeholder = { Text("Search keywords, topics...", fontSize = 11.sp) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = "Search",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(
+                                            onClick = { onSearchQueryChanged("") },
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .testTag("clear_search_button")
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Clear search",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(38.dp)
+                                    .testTag("search_input_field"),
+                                shape = RoundedCornerShape(19.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                                )
                             )
                         }
+                    },
+                    actions = {
+                        if (onPlayMorningDigest != null) {
+                            IconButton(
+                                onClick = onPlayMorningDigest,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .testTag("play_morning_digest_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = "Audio Digest",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = onRefresh,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("refresh_button")
+                        ) {
+                            if (isRefreshing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Refresh feed",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+
+                // Ultra-compact category filter row to minimize static view height
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 2.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = onlyHighSnr,
+                            onClick = onToggleOnlyHighSnr,
+                            label = { Text(text = "🎯 >80%", fontSize = 10.sp) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            modifier = Modifier
+                                .height(28.dp)
+                                .testTag("high_snr_chip")
+                        )
+                    }
+
+                    items(categories) { (code, label) ->
+                        val selected = selectedCategoryTags.contains(code) || (code == "ALL" && (selectedCategoryTags.contains("ALL") || selectedCategoryTags.isEmpty()))
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                onToggleCategoryTag(code)
+                                onCategoryChanged(code)
+                            },
+                            label = { Text(text = label, fontSize = 10.sp) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            modifier = Modifier
+                                .height(28.dp)
+                                .testTag("category_chip_$code")
+                        )
                     }
                 }
             }
-
-            IconButton(
-                onClick = onRefresh,
-                modifier = Modifier
-                    .size(36.dp)
-                    .testTag("refresh_button")
-            ) {
-                if (isRefreshing) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Làm mới nguồn tin",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Row 2: Ultra-Compact Time Budget Selector
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        },
+        modifier = modifier.fillMaxSize()
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            Column(modifier = Modifier.weight(0.35f)) {
-                Text(
-                    text = "⏱️ Thời gian:",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = when(timeBudget) {
-                        TimeBudget.TWO_MINUTES -> "Tóm tắt top 3"
-                        TimeBudget.FIVE_MINUTES -> "Tóm tắt top 7"
-                        TimeBudget.DEEP_DIVE -> "Đọc toàn bộ"
-                    },
-                    fontSize = 8.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.weight(0.65f)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.TopCenter
             ) {
-                TimeBudget.entries.forEach { budget ->
-                    val selected = budget == timeBudget
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(24.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onTimeBudgetChanged(budget) }
-                            .testTag("time_budget_btn_${budget.name}")
-                    ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 720.dp)
+                        .padding(horizontal = 12.dp)
+                ) {
+                    // Active search filter status banner
+                    AnimatedVisibility(visible = searchQuery.isNotBlank()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Filtering by: \"$searchQuery\" (${articles.size} found)",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Clear Filter",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .clickable { onSearchQueryChanged("") }
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Intelligence Briefing Section Card
+                    if (searchQuery.isBlank() && selectedCategoryTags.contains("ALL") && intelligenceBriefingSummary.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        androidx.compose.material3.Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = androidx.compose.material3.CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("intelligence_briefing_card")
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.AutoAwesome,
+                                            contentDescription = "Intelligence Briefing",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Daily Intelligence Briefing",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    if (onPlayMorningDigest != null) {
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .clickable(onClick = onPlayMorningDigest)
+                                                .testTag("play_briefing_audio_btn")
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                                    contentDescription = "Listen",
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(3.dp))
+                                                Text(
+                                                    text = "Listen",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = intelligenceBriefingSummary,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        lineHeight = 18.sp,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Articles List or Empty State
+                    if (articles.isEmpty()) {
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(32.dp)
                         ) {
-                            Text(
-                                text = budget.label,
-                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = "Empty",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "No matching articles found",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Try adjusting your filters or pull down to refresh the feed.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .testTag("article_feed_list")
+                        ) {
+                            items(articles, key = { it.id }) { article ->
+                                ArticleCard(
+                                    article = article,
+                                    onArticleClick = onArticleClick,
+                                    onBookmarkToggle = { onBookmarkToggle(it) },
+                                    onPlayAudio = { onPlayAudio(it) }
+                                )
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(80.dp)) // padding for bottom nav
+                            }
                         }
                     }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Row 3: Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChanged,
-            placeholder = { Text("Tìm kiếm từ khóa, chủ đề...", fontSize = 12.sp) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(42.dp)
-                .testTag("search_input_field"),
-            shape = RoundedCornerShape(21.dp),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Row 4: Category Chips & High-SNR Filter Row
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            item {
-                FilterChip(
-                    selected = onlyHighSnr,
-                    onClick = onToggleOnlyHighSnr,
-                    label = { Text(text = "🎯 Signal >80%", fontSize = 11.sp, fontWeight = if (onlyHighSnr) FontWeight.Bold else FontWeight.Normal) },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    modifier = Modifier.testTag("high_snr_chip")
-                )
-            }
-
-            items(categories) { (code, label) ->
-                val selected = code == selectedCategory
-                FilterChip(
-                    selected = selected,
-                    onClick = { onCategoryChanged(code) },
-                    label = { Text(text = label, fontSize = 11.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal) },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier.testTag("category_chip_$code")
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Articles List or Empty State
-        if (articles.isEmpty()) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Empty",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Không tìm thấy tin tức phù hợp",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Thử thay đổi bộ lọc hoặc kéo xuống để làm mới nguồn tin.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag("article_feed_list")
-            ) {
-                items(articles, key = { it.id }) { article ->
-                    ArticleCard(
-                        article = article,
-                        onArticleClick = onArticleClick,
-                        onBookmarkToggle = { onBookmarkToggle(it) },
-                        onPlayAudio = { onPlayAudio(it) }
-                    )
-                }
-                item {
-                    Spacer(modifier = Modifier.height(80.dp)) // padding for bottom nav
                 }
             }
         }
     }
-}
 }

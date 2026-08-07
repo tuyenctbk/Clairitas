@@ -21,15 +21,26 @@ class RadarNotificationManager(private val context: Context) {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val radarChannel = NotificationChannel(
                 CHANNEL_ID,
-                "News Radar Keyword Alerts (Săn Tin)",
+                "News Radar Keyword Alerts",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Cảnh báo tức thì khi tin tức khớp với từ khóa/bẫy tin săn lùng của bạn"
+                description = "Instant alerts when news articles match your keyword traps"
                 enableVibration(true)
             }
-            notificationManager.createNotificationChannel(channel)
+
+            val digestChannel = NotificationChannel(
+                DIGEST_CHANNEL_ID,
+                "Morning Daily Digest",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Morning compiled briefing of top-priority high-SNR news"
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannel(radarChannel)
+            notificationManager.createNotificationChannel(digestChannel)
         }
     }
 
@@ -48,11 +59,11 @@ class RadarNotificationManager(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("🎯 Săn Tin Claritas: $matchedKeyword")
+            .setContentTitle("🎯 Sift Radar: $matchedKeyword")
             .setContentText(article.title)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("${article.title}\n\n📍 ${article.publisher} • High Signal ${ (article.snrScore * 100).toInt() }%\n\n${article.summaryBullets.firstOrNull() ?: ""}")
+                    .bigText("${article.title}\n\n📍 ${article.publisher} • High Signal ${(article.snrScore * 100).toInt()}%\n\n${article.summaryBullets.firstOrNull() ?: ""}")
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -62,7 +73,44 @@ class RadarNotificationManager(private val context: Context) {
         notificationManager.notify(article.id.hashCode(), notification)
     }
 
+    fun sendDailyDigestNotification(topArticles: List<Article>) {
+        if (topArticles.isEmpty()) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("SHOW_DAILY_DIGEST", true)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            10001,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val firstArticle = topArticles.first()
+        val headlineCount = topArticles.size
+        val digestText = topArticles.take(3).joinToString("\n• ") { it.title }
+
+        val notification = NotificationCompat.Builder(context, DIGEST_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_today)
+            .setContentTitle("🌅 Your Morning Daily Digest ($headlineCount Top Stories)")
+            .setContentText(firstArticle.title)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText("Top High-Signal Stories for Today:\n\n• $digestText\n\nTap to open full AI Morning Audio Digest & Briefing.")
+            )
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        notificationManager.notify(DAILY_DIGEST_NOTIFICATION_ID, notification)
+    }
+
     companion object {
-        const val CHANNEL_ID = "claritas_radar_alerts"
+        const val CHANNEL_ID = "sift_radar_alerts"
+        const val DIGEST_CHANNEL_ID = "sift_daily_digest"
+        const val DAILY_DIGEST_NOTIFICATION_ID = 9901
     }
 }

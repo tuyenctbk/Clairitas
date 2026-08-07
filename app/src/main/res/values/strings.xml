@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Claritas</string>
+    <string name="app_name">Sift</string>
     <string name="nav_home">Home</string>
     <string name="nav_radar">News Radar</string>
     <string name="nav_audio">Audio Digest</string>
@@ -8,12 +8,14 @@
     <string name="search_hint">Search articles, topics...</string>
     <string name="refresh_status">Live Feed Updated</string>
     <string name="high_snr_filter">High SNR Only</string>
-    <string name="category_all">All</string>
+    <string name="category_all">All Topics</string>
     <string name="category_tech">Tech</string>
-    <string name="category_markets">Markets</string>
-    <string name="category_real_estate">Real Estate</string>
-    <string name="category_business">Business</string>
+    <string name="category_global">Global</string>
     <string name="category_science">Science</string>
+    <string name="category_markets">Markets</string>
+    <string name="category_business">Business</string>
+    <string name="category_real_estate">Real Estate</string>
+    <string name="category_ai">AI</string>
     <string name="time_budget_2min">2 min</string>
     <string name="time_budget_5min">5 min</string>
     <string name="time_budget_10min">10 min</string>
@@ -23,11 +25,13 @@
     <string name="settings_api_key">Gemini API Key</string>
     <string name="settings_save">Save Key</string>
     <string name="settings_saved">API Key Saved</string>
+    <string name="settings_language">App Language &amp; Translation</string>
+    <string name="settings_region">Country &amp; Region Curation</string>
     <string name="bookmarks_title">Saved Bookmarks</string>
     <string name="radar_title">Noise &amp; Trap Radar</string>
     <string name="audio_title">Audio Briefing Digest</string>
     <string name="article_detail_title">Article Analysis</string>
-    <string name="onboarding_title">Welcome to Claritas</string>
+    <string name="onboarding_title">Welcome to Sift</string>
     <string name="onboarding_subtitle">Signal-to-noise news curation &amp; intelligence</string>
     <string name="get_started">Get Started</string>
     <string name="no_bookmarks">No bookmarks saved yet</string>
@@ -38,4 +42,6 @@
     <string name="pause_audio">Pause Audio</string>
     <string name="speed_normal">1.0x</string>
     <string name="speed_fast">1.5x</string>
+    <string name="translate_article">Translate Article</string>
+    <string name="original_text">Original Text</string>
 </resources>
