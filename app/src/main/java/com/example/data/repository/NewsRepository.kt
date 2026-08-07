@@ -1,6 +1,7 @@
 package com.example.data.repository
 
 import android.content.Context
+import android.util.LruCache
 import com.example.data.local.AppDatabase
 import com.example.data.local.ArticleEntity
 import com.example.data.local.KeywordTrapEntity
@@ -25,6 +26,33 @@ data class ClearCacheResult(
     val freedBytes: Long = 0L
 )
 
+// In-memory thread-safe LRU Cache backed by LinkedHashMap for article metadata
+class ArticleLruCache(private val maxEntries: Int = 50) {
+    private val map = object : LinkedHashMap<String, Article>(maxEntries, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Article>?): Boolean {
+            return size > maxEntries
+        }
+    }
+
+    @Synchronized
+    fun get(key: String): Article? = map[key]
+
+    @Synchronized
+    fun put(key: String, value: Article) {
+        map[key] = value
+    }
+
+    @Synchronized
+    fun remove(key: String) {
+        map.remove(key)
+    }
+
+    @Synchronized
+    fun clear() {
+        map.clear()
+    }
+}
+
 class NewsRepository(
     private val context: Context,
     private val db: AppDatabase = AppDatabase.getDatabase(context),
@@ -33,26 +61,74 @@ class NewsRepository(
     private val articleDao = db.articleDao()
     private val keywordTrapDao = db.keywordTrapDao()
 
+    // In-memory LRU Cache for article metadata using LinkedHashMap (max 50 entries)
+    private val articleLruCache = ArticleLruCache(50)
+    val firebaseSyncManager = com.example.service.FirebaseSyncManager(context, articleDao)
+
     val allArticles: Flow<List<Article>> = articleDao.getAllArticles().map { entities ->
-        entities.map { it.toArticle() }
+        entities.map { entity ->
+            val article = entity.toArticle()
+            articleLruCache.put(article.id, article)
+            article
+        }
     }
 
     val bookmarkedArticles: Flow<List<Article>> = articleDao.getBookmarkedArticles().map { entities ->
-        entities.map { it.toArticle() }
+        entities.map { entity ->
+            val article = entity.toArticle()
+            articleLruCache.put(article.id, article)
+            article
+        }
+    }
+
+    val readArticles: Flow<List<Article>> = articleDao.getReadArticles().map { entities ->
+        entities.map { entity ->
+            val article = entity.toArticle()
+            articleLruCache.put(article.id, article)
+            article
+        }
     }
 
     val allKeywordTraps: Flow<List<KeywordTrapEntity>> = keywordTrapDao.getAllTraps()
 
     suspend fun getArticleById(id: String): Article? {
-        return articleDao.getArticleById(id)?.toArticle()
+        articleLruCache.get(id)?.let { cached ->
+            return cached
+        }
+        val article = articleDao.getArticleById(id)?.toArticle()
+        if (article != null) {
+            articleLruCache.put(id, article)
+        }
+        return article
     }
 
     suspend fun toggleBookmark(id: String, currentState: Boolean) {
-        articleDao.updateBookmarkState(id, !currentState)
+        val newState = !currentState
+        articleLruCache.get(id)?.let { cached ->
+            articleLruCache.put(id, cached.copy(isBookmarked = newState))
+        }
+        articleDao.updateBookmarkState(id, newState)
+
+        // Sync with Firebase Firestore
+        val updatedArticle = getArticleById(id)
+        if (updatedArticle != null) {
+            if (newState) {
+                firebaseSyncManager.backupBookmarkToCloud(updatedArticle)
+            } else {
+                firebaseSyncManager.removeBookmarkFromCloud(id)
+            }
+        }
     }
 
     suspend fun markAsRead(id: String) {
+        articleLruCache.get(id)?.let { cached ->
+            articleLruCache.put(id, cached.copy(isRead = true))
+        }
         articleDao.markAsRead(id)
+    }
+
+    suspend fun clearReadingHistory() {
+        articleDao.clearReadingHistory()
     }
 
     suspend fun addKeywordTrap(keyword: String, categoryFilter: String = "ALL") {
@@ -122,7 +198,7 @@ class NewsRepository(
         )
     }
 
-    suspend fun autoClearOldArticlesAndCache(days: Int): ClearCacheResult = withContext(Dispatchers.IO) {
+    suspend fun autoClearOldArticlesAndCache(days: Int = 30): ClearCacheResult = withContext(Dispatchers.IO) {
         if (days <= 0) return@withContext ClearCacheResult(0, 0L)
         val threshold = System.currentTimeMillis() - (days.toLong() * 24L * 3600L * 1000L)
         val countBefore = articleDao.getTotalArticlesCount()
@@ -130,10 +206,13 @@ class NewsRepository(
         val countAfter = articleDao.getTotalArticlesCount()
         val clearedCount = countBefore - countAfter
 
+        var freedImageBytes = 0L
         try {
-            context.cacheDir.listFiles()?.forEach { file ->
-                if (file.lastModified() < threshold) {
-                    file.deleteRecursively()
+            // Walk and purge cached article images & disk cache files older than threshold
+            context.cacheDir.walkTopDown().forEach { file ->
+                if (file.isFile && file.lastModified() < threshold) {
+                    freedImageBytes += file.length()
+                    file.delete()
                 }
             }
         } catch (e: Exception) {
@@ -142,7 +221,7 @@ class NewsRepository(
 
         ClearCacheResult(
             articlesCleared = clearedCount,
-            freedBytes = clearedCount * 48 * 1024L
+            freedBytes = (clearedCount * 48 * 1024L) + freedImageBytes
         )
     }
 

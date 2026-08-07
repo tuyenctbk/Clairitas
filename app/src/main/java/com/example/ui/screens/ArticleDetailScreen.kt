@@ -37,12 +37,14 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Slider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -79,11 +81,18 @@ fun ArticleDetailScreen(
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
     customApiKey: String = "",
+    speechSpeed: Float = 1.0f,
+    onSpeedChange: (Float) -> Unit = {},
+    initialFontSize: Int = 18,
+    initialTypeface: String = "Serif",
+    onFontSizeChanged: (Int) -> Unit = {},
+    onTypefaceChanged: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (article == null) return
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val scrollState = rememberScrollState()
     val readingProgress = if (scrollState.maxValue > 0) {
         scrollState.value.toFloat() / scrollState.maxValue.toFloat()
@@ -92,8 +101,10 @@ fun ArticleDetailScreen(
     }
     var showInAppBrowser by remember { mutableStateOf(false) }
     var isReaderMode by remember { mutableStateOf(true) }
+    var showAISummary by remember { androidx.compose.runtime.mutableStateOf(true) }
     var readerTheme by remember { mutableStateOf("Light") } // "Light", "Sepia", "Dark", "Sage"
-    var readerFontSizeSp by remember { mutableStateOf(17) } // 14, 17, 20, 23
+    var readerFontSizeSp by remember { mutableStateOf(initialFontSize) }
+    var readerTypefaceStr by remember { mutableStateOf(initialTypeface) }
 
     // 60+ Language translation states
     var selectedTranslateLang by remember { mutableStateOf<Pair<String, String>?>(null) } // Name, Code
@@ -247,7 +258,10 @@ fun ArticleDetailScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
-                    IconButton(onClick = { onBookmarkToggle(article) }) {
+                    IconButton(onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onBookmarkToggle(article)
+                    }) {
                         Icon(
                             imageVector = if (article.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Save Article",
@@ -313,6 +327,57 @@ fun ArticleDetailScreen(
                             )
                         }
                         SnrBadge(snrScore = article.snrScore, biasCategory = article.biasCategory)
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // TTS Playback Speed Control Slider
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = "TTS Speed",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "TTS Speed",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Text(
+                                text = "${String.format("%.2f", speechSpeed)}x",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Slider(
+                            value = speechSpeed,
+                            onValueChange = { onSpeedChange(it) },
+                            valueRange = 0.5f..2.0f,
+                            steps = 5,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .testTag("tts_speed_slider")
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -465,119 +530,221 @@ fun ArticleDetailScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 3-Bullet TL;DR Summary Card
+            // AI Summarization View Toggle Card
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.15f)
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(
-                        1.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        RoundedCornerShape(12.dp)
-                    )
+                    .padding(vertical = 4.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "⚡ Executive Summary (3-Bullet TL;DR):",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(
+                            imageVector = Icons.Default.AutoStories,
+                            contentDescription = "AI Summarizer",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { onPlayAudio(currentPlayArticle) }
-                                .testTag("listen_tts_summary_button")
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Sift AI Summarizer (TL;DR)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                text = "Distill raw content into key actionable insights",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = showAISummary,
+                        onCheckedChange = { showAISummary = it },
+                        modifier = Modifier.testTag("ai_summarization_toggle_switch")
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            AnimatedVisibility(visible = showAISummary) {
+                // 3-Bullet TL;DR Summary Card
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            RoundedCornerShape(12.dp)
+                        )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
+                            Text(
+                                text = "⚡ Executive Summary (3-Bullet TL;DR):",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { onPlayAudio(currentPlayArticle) }
+                                    .testTag("listen_tts_summary_button")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                        contentDescription = "Listen to TTS",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Listen TTS",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        (translatedBullets ?: article.summaryBullets).forEach { bullet ->
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                verticalAlignment = Alignment.Top,
+                                modifier = Modifier.padding(vertical = 4.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                    contentDescription = "Listen to TTS",
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(14.dp)
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Bullet",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .padding(top = 2.dp)
+                                        .size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Listen TTS",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
+                                    text = bullet,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        lineHeight = 22.sp,
+                                        fontSize = 14.5.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    (translatedBullets ?: article.summaryBullets).forEach { bullet ->
-                        Row(
-                            verticalAlignment = Alignment.Top,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Bullet",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .padding(top = 2.dp)
-                                    .size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = bullet,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    lineHeight = 22.sp,
-                                    fontSize = 14.5.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        // TTS Playback Speed Control Slider
+                        Column(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { shareArticleSummary() }
-                                .testTag("share_summary_action_button")
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Share,
-                                    contentDescription = "Share",
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Speed,
+                                        contentDescription = "TTS Speed",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "TTS Speed",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                                 Text(
-                                    text = "Share Key Takeaways",
-                                    fontSize = 12.sp,
+                                    text = "${String.format("%.2f", speechSpeed)}x",
+                                    style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = MaterialTheme.colorScheme.primary
                                 )
+                            }
+                            Slider(
+                                value = speechSpeed,
+                                onValueChange = { onSpeedChange(it) },
+                                valueRange = 0.5f..2.0f,
+                                steps = 5,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(32.dp)
+                                    .testTag("tts_speed_slider")
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { shareArticleSummary() }
+                                    .testTag("share_summary_action_button")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Share,
+                                        contentDescription = "Share",
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Share Key Takeaways",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
                             }
                         }
                     }
@@ -772,29 +939,61 @@ fun ArticleDetailScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     val rawContent = translatedContent ?: article.fullContent
-                    val displayedContent = if (isReaderMode) {
-                        rawContent.lines().filter { line ->
-                            val l = line.lowercase()
-                            !l.contains("advertisement") &&
-                            !l.contains("sponsored") &&
-                            !l.contains("subscribe now") &&
-                            !l.contains("click here") &&
-                            !l.contains("promo code") &&
-                            !l.contains("ad banner")
-                        }.joinToString("\n")
-                    } else {
-                        rawContent
+                    val displayedContent = rawContent.lines().filter { line ->
+                        val l = line.lowercase()
+                        !l.contains("advertisement") &&
+                        !l.contains("sponsored") &&
+                        !l.contains("subscribe now") &&
+                        !l.contains("click here") &&
+                        !l.contains("promo code") &&
+                        !l.contains("ad banner")
+                    }.joinToString("\n")
+
+                    val selectedFontFamily = when (readerTypefaceStr.lowercase()) {
+                        "serif" -> androidx.compose.ui.text.font.FontFamily.Serif
+                        "monospace" -> androidx.compose.ui.text.font.FontFamily.Monospace
+                        "sans-serif" -> androidx.compose.ui.text.font.FontFamily.SansSerif
+                        else -> androidx.compose.ui.text.font.FontFamily.Default
                     }
 
-                    Text(
-                        text = displayedContent,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontSize = readerFontSizeSp.sp,
-                            lineHeight = (readerFontSizeSp + 10).sp,
-                            letterSpacing = 0.2.sp
-                        ),
-                        color = readerTextColor
-                    )
+                    if (isReaderMode) {
+                        Text(
+                            text = displayedContent,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontSize = readerFontSizeSp.sp,
+                                lineHeight = (readerFontSizeSp + 10).sp,
+                                letterSpacing = 0.2.sp,
+                                fontFamily = selectedFontFamily
+                            ),
+                            color = readerTextColor
+                        )
+                    } else {
+                        // Original Web View mode with injected CSS hiding ads/sidebars/footers
+                        AndroidView(
+                            factory = { ctx ->
+                                WebView(ctx).apply {
+                                    webViewClient = object : WebViewClient() {
+                                        override fun onPageFinished(view: WebView?, url: String?) {
+                                            super.onPageFinished(view, url)
+                                            val cssInject = "javascript:(function() { " +
+                                                "var style = document.createElement('style'); " +
+                                                "style.type = 'text/css'; " +
+                                                "style.innerHTML = 'header, footer, nav, sidebar, .ad, .ads, .advertisement, .social-share, #comments, .cookie-banner { display: none !important; }'; " +
+                                                "document.head.appendChild(style); " +
+                                                "})();"
+                                            view?.loadUrl(cssInject)
+                                        }
+                                    }
+                                    settings.javaScriptEnabled = true
+                                    loadUrl(article.sourceUrl)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(520.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        )
+                    }
                 }
             }
 

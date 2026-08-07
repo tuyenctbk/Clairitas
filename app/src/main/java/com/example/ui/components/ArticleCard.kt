@@ -104,13 +104,11 @@ fun ArticleCard(
                 }
             }
 
-            // Calculate accurate reading time
-            val readingTimeMinutes = if (article.timeEstimateMinutes > 0) {
-                article.timeEstimateMinutes
-            } else {
-                val words = (article.fullContent + " " + article.summaryBullets.joinToString(" ")).trim().split(Regex("\\s+")).size
-                kotlin.math.max(1, (words / 180.0).toInt())
-            }
+            // Calculate accurate reading time using ReadingTimeCalculator
+            val readingTimeText = com.example.util.ReadingTimeCalculator.formatReadingTime(
+                fullContent = article.fullContent,
+                summaryBullets = article.summaryBullets
+            )
 
             // Category & Publisher Header with Read/Unread Status Marker
             Row(
@@ -158,7 +156,7 @@ fun ArticleCard(
                     }
 
                     Text(
-                        text = "${article.publisher} • ⏱️ ${readingTimeMinutes} min read",
+                        text = "${article.publisher} • ⏱️ $readingTimeText",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

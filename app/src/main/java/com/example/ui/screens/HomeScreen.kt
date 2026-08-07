@@ -66,6 +66,8 @@ import com.example.data.model.ProcessingMode
 import com.example.data.model.TimeBudget
 import com.example.service.BackgroundSyncInfo
 import com.example.ui.components.ArticleCard
+import com.example.ui.components.UnifiedErrorAndEmptyStateView
+import com.example.ui.components.UnifiedStateType
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +82,8 @@ fun HomeScreen(
     onlyHighSnr: Boolean = false,
     syncInfo: BackgroundSyncInfo = BackgroundSyncInfo(),
     intelligenceBriefingSummary: String = "",
+    feedError: String? = null,
+    onClearError: () -> Unit = {},
     onTimeBudgetChanged: (TimeBudget) -> Unit,
     onCategoryChanged: (String) -> Unit,
     onToggleCategoryTag: (String) -> Unit = {},
@@ -280,8 +284,16 @@ fun HomeScreen(
                     }
                 }
 
-                // Search History Suggestion Row
-                AnimatedVisibility(visible = isSearchFocused && searchHistory.isNotEmpty()) {
+                // Search History & Topic Suggestion Row
+                val filteredSuggestions = remember(searchHistory, searchQuery) {
+                    if (searchQuery.isBlank()) {
+                        searchHistory
+                    } else {
+                        searchHistory.filter { it.contains(searchQuery, ignoreCase = true) }
+                    }
+                }
+
+                AnimatedVisibility(visible = isSearchFocused && (filteredSuggestions.isNotEmpty() || searchHistory.isNotEmpty())) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -289,7 +301,7 @@ fun HomeScreen(
                             .padding(horizontal = 12.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "History:",
+                            text = if (searchQuery.isBlank()) "History:" else "Suggestions:",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -299,7 +311,8 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            items(searchHistory) { historyItem ->
+                            val itemsToShow = if (searchQuery.isBlank()) searchHistory else filteredSuggestions
+                            items(itemsToShow) { historyItem ->
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
                                     color = MaterialTheme.colorScheme.surfaceVariant,
@@ -463,34 +476,30 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Articles List or Empty State
-                    if (articles.isEmpty()) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(32.dp)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Default.FilterList,
-                                    contentDescription = "Empty",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    text = "No matching articles found",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = "Try adjusting your filters or pull down to refresh the feed.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                )
-                            }
+                    if (feedError != null) {
+                        UnifiedErrorAndEmptyStateView(
+                            type = UnifiedStateType.API_FAILURE,
+                            customErrorMessage = feedError,
+                            onActionClick = {
+                                onClearError()
+                                onRefresh()
+                            },
+                            actionButtonText = "Retry Feed Scan"
+                        )
+                    } else if (articles.isEmpty()) {
+                        if (searchQuery.isNotBlank()) {
+                            UnifiedErrorAndEmptyStateView(
+                                type = UnifiedStateType.NO_RESULTS,
+                                customErrorMessage = "No articles matched \"$searchQuery\". Try search keywords like 'AI', 'Tech', or 'Markets'.",
+                                onActionClick = { onSearchQueryChanged("") },
+                                actionButtonText = "Clear Search"
+                            )
+                        } else {
+                            UnifiedErrorAndEmptyStateView(
+                                type = UnifiedStateType.EMPTY_FEED,
+                                onActionClick = onRefresh,
+                                actionButtonText = "Trigger Curation"
+                            )
                         }
                     } else {
                         LazyColumn(
@@ -500,9 +509,11 @@ fun HomeScreen(
                                 .testTag("article_feed_list")
                         ) {
                             items(articles, key = { it.id }) { article ->
+                                val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
                                 val dismissState = rememberSwipeToDismissBoxState(
                                     confirmValueChange = { value ->
                                         if (value == SwipeToDismissBoxValue.StartToEnd || value == SwipeToDismissBoxValue.EndToStart) {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                             onDismissArticle(article)
                                             true
                                         } else {

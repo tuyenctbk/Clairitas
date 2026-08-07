@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.local.KeywordTrapEntity
 import com.example.data.model.Article
 import com.example.ui.components.ArticleCard
+import com.example.ui.screens.EmptyStatesTabContainerScreen
 
 @Composable
 fun NewsRadarScreen(
@@ -63,6 +64,7 @@ fun NewsRadarScreen(
     modifier: Modifier = Modifier
 ) {
     var newKeywordInput by remember { mutableStateOf("") }
+    var selectedRadarTab by remember { androidx.compose.runtime.mutableIntStateOf(0) }
 
     val matchedArticles = allArticles.filter { it.matchedTrapKeywords.isNotEmpty() }
 
@@ -110,7 +112,35 @@ fun NewsRadarScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        androidx.compose.material3.TabRow(
+            selectedTabIndex = selectedRadarTab,
+            modifier = Modifier.fillMaxWidth().testTag("radar_mode_tab_row")
+        ) {
+            androidx.compose.material3.Tab(
+                selected = selectedRadarTab == 0,
+                onClick = { selectedRadarTab = 0 },
+                text = { Text("🎯 Keyword Traps", fontWeight = FontWeight.Bold) },
+                modifier = Modifier.testTag("radar_tab_traps")
+            )
+            androidx.compose.material3.Tab(
+                selected = selectedRadarTab == 1,
+                onClick = { selectedRadarTab = 1 },
+                text = { Text("📊 Activity / SOS / Geo-Fence", fontWeight = FontWeight.Bold) },
+                modifier = Modifier.testTag("radar_tab_empty_monitors")
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        if (selectedRadarTab == 1) {
+            EmptyStatesTabContainerScreen(
+                onStartScan = onScanNow,
+                onTestSos = onScanNow,
+                onConfigureRegion = {}
+            )
+        } else {
 
         // Add Keyword Trap Input Card
         Card(
@@ -337,6 +367,7 @@ fun NewsRadarScreen(
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }
+        }
         }
     }
 }

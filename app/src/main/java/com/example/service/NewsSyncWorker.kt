@@ -62,11 +62,17 @@ class NewsSyncWorker(
 
         /**
          * Schedules recurring background sync every 15 minutes when connected to network.
+         * Dynamically respects battery constraints (e.g. requires battery not low).
          */
-        fun schedulePeriodicSync(context: Context) {
-            val constraints = Constraints.Builder()
+        fun schedulePeriodicSync(context: Context, requireBatteryNotLow: Boolean = false) {
+            val builder = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+
+            if (requireBatteryNotLow) {
+                builder.setRequiresBatteryNotLow(true)
+            }
+
+            val constraints = builder.build()
 
             val syncRequest = PeriodicWorkRequestBuilder<NewsSyncWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(constraints)
@@ -74,10 +80,24 @@ class NewsSyncWorker(
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 PERIODIC_WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 syncRequest
             )
-            Log.d(TAG, "Enqueued periodic background sync with WorkManager")
+            Log.d(TAG, "Enqueued periodic background sync with WorkManager (requireBatteryNotLow=$requireBatteryNotLow)")
+        }
+
+        /**
+         * Dynamically updates WorkManager background sync constraints when battery enters low power/critical state.
+         */
+        fun updateWorkManagerConstraints(context: Context, isLowPowerOrCritical: Boolean) {
+            val workManager = WorkManager.getInstance(context)
+            if (isLowPowerOrCritical) {
+                Log.w(TAG, "Suspending WorkManager background sync due to critical battery/low power state")
+                workManager.cancelUniqueWork(PERIODIC_WORK_NAME)
+            } else {
+                Log.d(TAG, "Restoring normal WorkManager background sync schedule")
+                schedulePeriodicSync(context, requireBatteryNotLow = true)
+            }
         }
 
         /**

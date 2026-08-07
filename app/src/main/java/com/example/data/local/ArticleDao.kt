@@ -12,6 +12,12 @@ interface ArticleDao {
     suspend fun getBookmarkedArticlesList(): List<ArticleEntity>
 
 
+    @Query("SELECT * FROM articles WHERE isRead = 1 ORDER BY publishedAt DESC")
+    fun getReadArticles(): Flow<List<ArticleEntity>>
+
+    @Query("UPDATE articles SET isRead = 0")
+    suspend fun clearReadingHistory()
+
     @Query("SELECT * FROM articles ORDER BY publishedAt DESC")
     fun getAllArticles(): Flow<List<ArticleEntity>>
 

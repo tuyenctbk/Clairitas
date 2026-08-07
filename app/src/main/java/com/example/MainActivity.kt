@@ -135,6 +135,10 @@ fun SiftApp(viewModel: NewsViewModel) {
     val preCacheForOffline by viewModel.preCacheForOffline.collectAsStateWithLifecycle()
     val briefingHour by viewModel.briefingHour.collectAsStateWithLifecycle()
     val briefingMinute by viewModel.briefingMinute.collectAsStateWithLifecycle()
+    val readerFontSize by viewModel.readerFontSize.collectAsStateWithLifecycle()
+    val readerTypeface by viewModel.readerTypeface.collectAsStateWithLifecycle()
+    val readArticles by viewModel.readArticles.collectAsStateWithLifecycle()
+    val feedError by viewModel.feedError.collectAsStateWithLifecycle()
 
     val playbackState by viewModel.audioManager.playbackState.collectAsStateWithLifecycle()
     val currentAudioTitle by viewModel.audioManager.currentTitle.collectAsStateWithLifecycle()
@@ -247,7 +251,13 @@ fun SiftApp(viewModel: NewsViewModel) {
                             selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
                         },
                         onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                        customApiKey = customApiKey
+                        customApiKey = customApiKey,
+                        speechSpeed = speechSpeed,
+                        onSpeedChange = { viewModel.audioManager.setSpeed(it) },
+                        initialFontSize = readerFontSize,
+                        initialTypeface = readerTypeface,
+                        onFontSizeChanged = { viewModel.setReaderFontSize(it) },
+                        onTypefaceChanged = { viewModel.setReaderTypeface(it) }
                     )
                 } else {
                     // Tab Content (Tablet embeds detail side-by-side under HOME tab)
@@ -259,6 +269,8 @@ fun SiftApp(viewModel: NewsViewModel) {
                                     // Left side list
                                     Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                                         HomeScreen(
+                                            feedError = feedError,
+                                            onClearError = { viewModel.clearFeedError() },
                                             articles = filteredArticles,
                                             timeBudget = timeBudget,
                                             selectedCategory = selectedCategory,
@@ -322,6 +334,12 @@ fun SiftApp(viewModel: NewsViewModel) {
                                                     selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
                                                 },
                                                 onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                                                speechSpeed = speechSpeed,
+                                                onSpeedChange = { viewModel.audioManager.setSpeed(it) },
+                                                initialFontSize = readerFontSize,
+                                                initialTypeface = readerTypeface,
+                                                onFontSizeChanged = { viewModel.setReaderFontSize(it) },
+                                                onTypefaceChanged = { viewModel.setReaderTypeface(it) }
                                             )
                                         } else {
                                             TabletWelcomePlaceholder()
@@ -331,6 +349,8 @@ fun SiftApp(viewModel: NewsViewModel) {
                             } else {
                                 // Mobile Home Screen layout
                                 HomeScreen(
+                                    feedError = feedError,
+                                    onClearError = { viewModel.clearFeedError() },
                                     articles = filteredArticles,
                                     timeBudget = timeBudget,
                                     selectedCategory = selectedCategory,
@@ -446,11 +466,21 @@ fun SiftApp(viewModel: NewsViewModel) {
                                         onDismissClearCacheMsg = { viewModel.dismissClearCacheMessage() },
                                         onLowPowerModeChanged = { viewModel.setLowPowerMode(it) },
                                         onAutoClearRetentionDaysChanged = { viewModel.setAutoClearRetentionDays(it) },
-                                         preCacheForOffline = preCacheForOffline,
-                                         briefingHour = briefingHour,
-                                         briefingMinute = briefingMinute,
-                                         onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
-                                         onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) }
+                                        preCacheForOffline = preCacheForOffline,
+                                        briefingHour = briefingHour,
+                                        briefingMinute = briefingMinute,
+                                        readerFontSize = readerFontSize,
+                                        readerTypeface = readerTypeface,
+                                        readArticles = readArticles,
+                                        onArticleClick = { article ->
+                                            viewModel.markAsRead(article.id)
+                                            selectedArticleForDetail = article.copy(isRead = true)
+                                        },
+                                        onClearReadingHistory = { viewModel.clearReadingHistory() },
+                                        onReaderFontSizeChanged = { viewModel.setReaderFontSize(it) },
+                                        onReaderTypefaceChanged = { viewModel.setReaderTypeface(it) },
+                                        onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
+                                        onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) }
                                     )
                                 }
                             }

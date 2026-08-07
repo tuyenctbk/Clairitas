@@ -89,6 +89,9 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _feedError = MutableStateFlow<String?>(null)
+    val feedError: StateFlow<String?> = _feedError.asStateFlow()
+
     private val _storageStats = MutableStateFlow(StorageStats())
     val storageStats: StateFlow<StorageStats> = _storageStats.asStateFlow()
 
@@ -97,6 +100,12 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _autoClearRetentionDays = MutableStateFlow(prefs.getInt("auto_clear_retention_days", 30))
     val autoClearRetentionDays: StateFlow<Int> = _autoClearRetentionDays.asStateFlow()
+
+    private val _readerFontSize = MutableStateFlow(prefs.getInt("reader_font_size", 18))
+    val readerFontSize: StateFlow<Int> = _readerFontSize.asStateFlow()
+
+    private val _readerTypeface = MutableStateFlow(prefs.getString("reader_typeface", "Serif") ?: "Serif")
+    val readerTypeface: StateFlow<String> = _readerTypeface.asStateFlow()
 
     
     private val _preCacheForOffline = MutableStateFlow(prefs.getBoolean("pre_cache_offline", false))
@@ -127,6 +136,16 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
 private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mode", false))
     val isLowPowerMode: StateFlow<Boolean> = _isLowPowerMode.asStateFlow()
+
+    fun setReaderFontSize(size: Int) {
+        _readerFontSize.value = size
+        prefs.edit().putInt("reader_font_size", size).apply()
+    }
+
+    fun setReaderTypeface(font: String) {
+        _readerTypeface.value = font
+        prefs.edit().putString("reader_typeface", font).apply()
+    }
 
     fun setAutoClearRetentionDays(days: Int) {
         _autoClearRetentionDays.value = days
@@ -163,6 +182,15 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
 
     val bookmarkedArticles: StateFlow<List<Article>> = repository.bookmarkedArticles
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val readArticles: StateFlow<List<Article>> = repository.readArticles
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun clearReadingHistory() {
+        viewModelScope.launch {
+            repository.clearReadingHistory()
+        }
+    }
 
     private val _dismissedArticleIds = MutableStateFlow<Set<String>>(
         prefs.getStringSet("dismissed_article_ids", emptySet()) ?: emptySet()
@@ -327,8 +355,11 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     }
 
     fun syncBookmarksWithCloud() {
-        val currentBookmarks = bookmarkedArticles.value
-        firebaseService.syncBookmarksToCloud(currentBookmarks)
+        viewModelScope.launch {
+            repository.firebaseSyncManager.restoreBookmarksFromCloud()
+            val currentBookmarks = bookmarkedArticles.value
+            firebaseService.syncBookmarksToCloud(currentBookmarks)
+        }
     }
 
     fun toggleOnlyHighSnr() {
@@ -343,13 +374,23 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     fun refreshFeed() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            repository.refreshNewsFeed(
-                processingMode = _selectedProcessingMode.value,
-                customApiKey = _customApiKey.value
-            )
-            _isRefreshing.value = false
-            loadStorageStats()
+            _feedError.value = null
+            try {
+                repository.refreshNewsFeed(
+                    processingMode = _selectedProcessingMode.value,
+                    customApiKey = _customApiKey.value
+                )
+            } catch (e: Exception) {
+                _feedError.value = e.localizedMessage ?: e.message ?: "An unexpected error occurred during refresh"
+            } finally {
+                _isRefreshing.value = false
+                loadStorageStats()
+            }
         }
+    }
+
+    fun clearFeedError() {
+        _feedError.value = null
     }
 
     fun loadStorageStats() {

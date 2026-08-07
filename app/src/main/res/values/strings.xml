@@ -44,4 +44,17 @@
     <string name="speed_fast">1.5x</string>
     <string name="translate_article">Translate Article</string>
     <string name="original_text">Original Text</string>
+    <string name="reading_history_title">Reading History &amp; Recently Viewed</string>
+    <string name="reading_history_subtitle">Locally stored history of articles you have read</string>
+    <string name="reading_history_empty">No reading history recorded yet</string>
+    <string name="reading_history_empty_desc">Articles you open and read will automatically appear here for easy access anytime.</string>
+    <string name="clear_reading_history">Clear History</string>
+    <string name="theme_setting_title">App Appearance &amp; Theme</string>
+    <string name="theme_setting_system">System Default</string>
+    <string name="theme_setting_light">Light Theme</string>
+    <string name="theme_setting_dark">Dark Theme</string>
+    <string name="theme_setting_amoled">Deep Black (OLED)</string>
+    <string name="empty_activity_title">No Activity Logs Collected</string>
+    <string name="empty_sos_title">SOS Emergency Monitor Clear</string>
+    <string name="empty_geofence_title">Geo-Fence Radar Inactive</string>
 </resources>
