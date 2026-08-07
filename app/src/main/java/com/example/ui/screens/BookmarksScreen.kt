@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -86,6 +87,54 @@ fun BookmarksScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        if (bookmarkedArticles.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = {
+                        com.example.util.ExportHelper.sharePdf(
+                            context = context,
+                            filename = "sift_bookmarks_export",
+                            articles = bookmarkedArticles
+                        )
+                    },
+                    modifier = Modifier.weight(1f).testTag("export_pdf_button")
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Share,
+                        contentDescription = "Export PDF",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "Export PDF", style = MaterialTheme.typography.labelLarge)
+                }
+
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = {
+                        com.example.util.ExportHelper.shareMarkdown(
+                            context = context,
+                            filename = "sift_bookmarks_export",
+                            articles = bookmarkedArticles
+                        )
+                    },
+                    modifier = Modifier.weight(1f).testTag("export_markdown_button")
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Share,
+                        contentDescription = "Export Markdown",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "Export Markdown", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
 
         if (bookmarkedArticles.isEmpty()) {
             Box(

@@ -21,8 +21,19 @@ class NewsSyncWorker(
 
     override suspend fun doWork(): Result {
         Log.d(TAG, "Background NewsSyncWorker started execution")
+        val prefs = applicationContext.getSharedPreferences("sift_prefs", Context.MODE_PRIVATE)
+        val isLowPower = prefs.getBoolean("is_low_power_mode", false)
+        if (isLowPower) {
+            Log.d(TAG, "Low Power Mode is enabled. Skipping background sync to save battery.")
+            return Result.success()
+        }
+
+        val retentionDays = prefs.getInt("auto_clear_retention_days", 30)
         return try {
             val repository = NewsRepository(applicationContext)
+            if (retentionDays > 0) {
+                repository.autoClearOldArticlesAndCache(retentionDays)
+            }
             val freshArticles = repository.refreshNewsFeed()
             Log.d(TAG, "Background NewsSyncWorker successfully updated Room database with fresh articles")
 

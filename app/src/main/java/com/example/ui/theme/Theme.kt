@@ -11,6 +11,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+private val AmoledColorScheme = darkColorScheme(
+    primary = Color(0xFF38BDF8),
+    onPrimary = Color(0xFF000000),
+    primaryContainer = Color(0xFF0284C7),
+    onPrimaryContainer = Color(0xFFE0F2FE),
+    secondary = Color(0xFF10B981),
+    background = Color(0xFF000000),
+    surface = Color(0xFF09090B),
+    surfaceVariant = Color(0xFF18181B),
+    onBackground = Color(0xFFFAFAFA),
+    onSurface = Color(0xFFFAFAFA),
+    onSurfaceVariant = Color(0xFFA1A1AA)
+)
+
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF38BDF8),
     onPrimary = Color(0xFF0B132B),
@@ -45,12 +59,13 @@ fun SiftTheme(
     darkTheme: Boolean = when (themeMode) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
+        ThemeMode.DARK, ThemeMode.AMOLED -> true
     },
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
+        themeMode == ThemeMode.AMOLED -> AmoledColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

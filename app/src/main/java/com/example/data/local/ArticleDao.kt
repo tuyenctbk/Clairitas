@@ -8,6 +8,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArticleDao {
+    @Query("SELECT * FROM articles WHERE isBookmarked = 1")
+    suspend fun getBookmarkedArticlesList(): List<ArticleEntity>
+
+
     @Query("SELECT * FROM articles ORDER BY publishedAt DESC")
     fun getAllArticles(): Flow<List<ArticleEntity>>
 
@@ -40,4 +44,7 @@ interface ArticleDao {
 
     @Query("DELETE FROM articles WHERE isBookmarked = 0")
     suspend fun clearUnbookmarkedArticles()
+
+    @Query("DELETE FROM articles WHERE isBookmarked = 0 AND publishedAt < :thresholdTimestamp")
+    suspend fun deleteOldUnbookmarkedArticles(thresholdTimestamp: Long)
 }

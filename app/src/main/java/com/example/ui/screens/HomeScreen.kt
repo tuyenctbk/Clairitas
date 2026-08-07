@@ -43,10 +43,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -76,24 +84,29 @@ fun HomeScreen(
     onCategoryChanged: (String) -> Unit,
     onToggleCategoryTag: (String) -> Unit = {},
     onSearchQueryChanged: (String) -> Unit,
+    searchHistory: List<String> = emptyList(),
+    onClearSearchHistory: () -> Unit = {},
     onToggleOnlyHighSnr: () -> Unit = {},
     onRefresh: () -> Unit,
     onArticleClick: (Article) -> Unit,
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
+    onDismissArticle: (Article) -> Unit = {},
     onPlayMorningDigest: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
-        "ALL" to "All Topics",
-        "Tech" to "💻 Tech",
-        "Global" to "🌍 Global",
-        "Science" to "🔬 Science",
-        "Markets" to "📈 Markets",
-        "Business" to "💼 Business",
-        "RealEstate" to "🏢 Real Estate",
-        "AI" to "🤖 AI"
+        "ALL" to "All",
+        "Tech" to "Technology",
+        "Science" to "Science",
+        "Global" to "World",
+        "Business" to "Business",
+        "Markets" to "Markets",
+        "AI" to "AI",
+        "RealEstate" to "Real Estate"
     )
+
+    var isSearchFocused by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -167,6 +180,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(38.dp)
+                                    .onFocusChanged { isSearchFocused = it.isFocused }
                                     .testTag("search_input_field"),
                                 shape = RoundedCornerShape(19.dp),
                                 singleLine = true,
@@ -262,6 +276,57 @@ fun HomeScreen(
                             modifier = Modifier
                                 .height(28.dp)
                                 .testTag("category_chip_$code")
+                        )
+                    }
+                }
+
+                // Search History Suggestion Row
+                AnimatedVisibility(visible = isSearchFocused && searchHistory.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "History:",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            items(searchHistory) { historyItem ->
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier
+                                        .clickable { onSearchQueryChanged(historyItem) }
+                                        .testTag("search_history_chip_$historyItem")
+                                ) {
+                                    Text(
+                                        text = historyItem,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Clear",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .clickable { onClearSearchHistory() }
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                .testTag("clear_history_button")
                         )
                     }
                 }
@@ -435,12 +500,53 @@ fun HomeScreen(
                                 .testTag("article_feed_list")
                         ) {
                             items(articles, key = { it.id }) { article ->
-                                ArticleCard(
-                                    article = article,
-                                    onArticleClick = onArticleClick,
-                                    onBookmarkToggle = { onBookmarkToggle(it) },
-                                    onPlayAudio = { onPlayAudio(it) }
+                                val dismissState = rememberSwipeToDismissBoxState(
+                                    confirmValueChange = { value ->
+                                        if (value == SwipeToDismissBoxValue.StartToEnd || value == SwipeToDismissBoxValue.EndToStart) {
+                                            onDismissArticle(article)
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    }
                                 )
+
+                                SwipeToDismissBox(
+                                    state = dismissState,
+                                    backgroundContent = {
+                                        val color = if (dismissState.dismissDirection != null) {
+                                            MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                                        } else {
+                                            Color.Transparent
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(color, shape = RoundedCornerShape(12.dp))
+                                                .padding(horizontal = 20.dp),
+                                            contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
+                                                Alignment.CenterStart
+                                            } else {
+                                                Alignment.CenterEnd
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Remove article",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("swipe_dismiss_${article.id}")
+                                ) {
+                                    ArticleCard(
+                                        article = article,
+                                        onArticleClick = onArticleClick,
+                                        onBookmarkToggle = { onBookmarkToggle(it) },
+                                        onPlayAudio = { onPlayAudio(it) }
+                                    )
+                                }
                             }
                             item {
                                 Spacer(modifier = Modifier.height(80.dp)) // padding for bottom nav

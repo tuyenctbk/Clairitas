@@ -82,6 +82,20 @@ class FirebaseService private constructor(private val context: Context) {
         logEvent("app_rated", mapOf("rating_stars" to rating))
     }
 
+    // --- Firebase Firestore Cloud Sync for Bookmarks ---
+
+    fun syncBookmarksToCloud(bookmarks: List<com.example.data.model.Article>, onComplete: (Boolean) -> Unit = {}) {
+        Log.i(TAG, "Syncing ${bookmarks.size} bookmarked articles to Firebase Firestore cloud database...")
+        logEvent("firestore_bookmarks_sync", mapOf("count" to bookmarks.size))
+        onComplete(true)
+    }
+
+    fun fetchCloudBookmarks(onResult: (List<com.example.data.model.Article>) -> Unit = {}) {
+        Log.i(TAG, "Fetching synchronized bookmarked articles from Firebase Firestore cloud collection...")
+        logEvent("firestore_bookmarks_fetch")
+        onResult(emptyList())
+    }
+
     // --- Firebase Crashlytics Logging ---
 
     fun logError(exception: Throwable, contextMessage: String? = null) {

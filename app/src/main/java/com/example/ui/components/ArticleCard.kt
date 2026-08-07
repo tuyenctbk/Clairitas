@@ -55,6 +55,7 @@ fun ArticleCard(
     onArticleClick: (Article) -> Unit,
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
+    onCategoryClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showOriginalTitle by remember { mutableStateOf(false) }
@@ -66,14 +67,14 @@ fun ArticleCard(
             .clickable { onArticleClick(article) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(14.dp)
         ) {
             // Keyword Trap Alert Tag if matched
             if (article.matchedTrapKeywords.isNotEmpty()) {
@@ -103,31 +104,104 @@ fun ArticleCard(
                 }
             }
 
-            // Category & Publisher Header
+            // Calculate accurate reading time
+            val readingTimeMinutes = if (article.timeEstimateMinutes > 0) {
+                article.timeEstimateMinutes
+            } else {
+                val words = (article.fullContent + " " + article.summaryBullets.joinToString(" ")).trim().split(Regex("\\s+")).size
+                kotlin.math.max(1, (words / 180.0).toInt())
+            }
+
+            // Category & Publisher Header with Read/Unread Status Marker
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "${article.publisher} • ${article.timeEstimateMinutes} min read",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Read/Unread Visual Marker Tag
+                    if (!article.isRead) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .testTag("unread_marker_${article.id}")
+                        ) {
+                            Text(
+                                text = "NEW",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.5.dp)
+                            )
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .testTag("read_marker_${article.id}")
+                        ) {
+                            Text(
+                                text = "READ",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.5.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "${article.publisher} • ⏱️ ${readingTimeMinutes} min read",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(6.dp))
                 SnrBadge(snrScore = article.snrScore, biasCategory = article.biasCategory)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Article Honest Title
+            // Category Pill Tag
+            if (article.category.isNotBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onCategoryClick?.invoke(article.category) }
+                        .testTag("category_pill_${article.category}")
+                ) {
+                    Text(
+                        text = "🏷️ ${article.category}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
+            // Article Honest Title (Higher prominence for Unread, dimmed for Read)
             Text(
                 text = article.title,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    lineHeight = 23.sp
+                    fontWeight = if (!article.isRead) FontWeight.Bold else FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp
                 ),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (!article.isRead) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )

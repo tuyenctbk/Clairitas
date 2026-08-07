@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
@@ -83,6 +84,12 @@ fun ArticleDetailScreen(
     if (article == null) return
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    val scrollState = rememberScrollState()
+    val readingProgress = if (scrollState.maxValue > 0) {
+        scrollState.value.toFloat() / scrollState.maxValue.toFloat()
+    } else {
+        0f
+    }
     var showInAppBrowser by remember { mutableStateOf(false) }
     var isReaderMode by remember { mutableStateOf(true) }
     var readerTheme by remember { mutableStateOf("Light") } // "Light", "Sepia", "Dark", "Sage"
@@ -220,6 +227,19 @@ fun ArticleDetailScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    IconButton(
+                        onClick = {
+                            com.example.util.ExportHelper.shareSummaryAsImage(context, article)
+                        },
+                        modifier = Modifier.testTag("share_image_snippet_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Share Image Snippet",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { onPlayAudio(article) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
@@ -260,7 +280,7 @@ fun ArticleDetailScreen(
                 modifier = Modifier
                     .fillMaxHeight()
                     .widthIn(max = 720.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(16.dp)
             ) {
             // SNR Signal Scanner Header Card
@@ -838,6 +858,17 @@ fun ArticleDetailScreen(
 
             Spacer(modifier = Modifier.height(60.dp))
         }
+
+        LinearProgressIndicator(
+            progress = readingProgress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+                .align(Alignment.TopCenter)
+                .testTag("reading_progress_bar"),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = Color.Transparent
+        )
     }
 
     // Modal Sheet for In-App Browser

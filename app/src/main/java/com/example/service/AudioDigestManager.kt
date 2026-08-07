@@ -20,7 +20,8 @@ data class AudioQueueItem(
 
 class AudioDigestManager(context: Context) : TextToSpeech.OnInitListener {
 
-    private var tts: TextToSpeech? = TextToSpeech(context, this)
+    private val appContext = context.applicationContext
+    private var tts: TextToSpeech? = TextToSpeech(appContext, this)
     private var isInitialized = false
 
     private val _playbackState = MutableStateFlow(PlaybackState.IDLE)
@@ -40,9 +41,9 @@ class AudioDigestManager(context: Context) : TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale("vi", "VN"))
+            val result = tts?.setLanguage(Locale.US)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                tts?.setLanguage(Locale.US)
+                tts?.setLanguage(Locale.ENGLISH)
             }
             isInitialized = true
 

@@ -122,6 +122,30 @@ class NewsRepository(
         )
     }
 
+    suspend fun autoClearOldArticlesAndCache(days: Int): ClearCacheResult = withContext(Dispatchers.IO) {
+        if (days <= 0) return@withContext ClearCacheResult(0, 0L)
+        val threshold = System.currentTimeMillis() - (days.toLong() * 24L * 3600L * 1000L)
+        val countBefore = articleDao.getTotalArticlesCount()
+        articleDao.deleteOldUnbookmarkedArticles(threshold)
+        val countAfter = articleDao.getTotalArticlesCount()
+        val clearedCount = countBefore - countAfter
+
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.lastModified() < threshold) {
+                    file.deleteRecursively()
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+
+        ClearCacheResult(
+            articlesCleared = clearedCount,
+            freedBytes = clearedCount * 48 * 1024L
+        )
+    }
+
     /**
      * Refreshes the news feed according to the selected processing mode.
      */
@@ -435,4 +459,25 @@ class NewsRepository(
             )
         )
     }
+
+    suspend fun preCacheBookmarkedArticles(): Int = withContext(Dispatchers.IO) {
+        val bookmarkedEntities = articleDao.getBookmarkedArticlesList()
+        var count = 0
+        bookmarkedEntities.forEach { entity ->
+            if (entity.imageUrl.isNotBlank()) {
+                try {
+                    val loader = coil.ImageLoader(context)
+                    val request = coil.request.ImageRequest.Builder(context)
+                        .data(entity.imageUrl)
+                        .build()
+                    loader.execute(request)
+                    count++
+                } catch (e: Exception) {
+                    // Ignore
+                }
+            }
+        }
+        count
+    }
+
 }

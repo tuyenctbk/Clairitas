@@ -28,6 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +39,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -112,6 +118,7 @@ fun SiftApp(viewModel: NewsViewModel) {
     val selectedCategoryTags by viewModel.selectedCategoryTags.collectAsStateWithLifecycle()
     val processingMode by viewModel.selectedProcessingMode.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
     val onlyHighSnr by viewModel.onlyHighSnr.collectAsStateWithLifecycle()
     val customApiKey by viewModel.customApiKey.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -122,12 +129,20 @@ fun SiftApp(viewModel: NewsViewModel) {
     val clearCacheMessage by viewModel.clearCacheMessage.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val intelligenceBriefingSummary by viewModel.intelligenceBriefingSummary.collectAsStateWithLifecycle()
+    val autoClearRetentionDays by viewModel.autoClearRetentionDays.collectAsStateWithLifecycle()
+    val isLowPowerMode by viewModel.isLowPowerMode.collectAsStateWithLifecycle()
+    val articlesReadCount by viewModel.articlesReadCount.collectAsStateWithLifecycle()
+    val preCacheForOffline by viewModel.preCacheForOffline.collectAsStateWithLifecycle()
+    val briefingHour by viewModel.briefingHour.collectAsStateWithLifecycle()
+    val briefingMinute by viewModel.briefingMinute.collectAsStateWithLifecycle()
 
     val playbackState by viewModel.audioManager.playbackState.collectAsStateWithLifecycle()
     val currentAudioTitle by viewModel.audioManager.currentTitle.collectAsStateWithLifecycle()
     val speechSpeed by viewModel.audioManager.currentSpeechSpeed.collectAsStateWithLifecycle()
 
     val isTablet = LocalConfiguration.current.screenWidthDp >= 720
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     if (showRatingPrompt) {
         SmartRatingDialog(
@@ -139,6 +154,7 @@ fun SiftApp(viewModel: NewsViewModel) {
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             // Only show bottom navigation on mobile devices and when not viewing article detail
             if (!isTablet && selectedArticleForDetail == null) {
@@ -249,6 +265,8 @@ fun SiftApp(viewModel: NewsViewModel) {
                                             selectedCategoryTags = selectedCategoryTags,
                                             processingMode = processingMode,
                                             searchQuery = searchQuery,
+                                            searchHistory = searchHistory,
+                                            onClearSearchHistory = { viewModel.clearSearchHistory() },
                                             isRefreshing = isRefreshing,
                                             onlyHighSnr = onlyHighSnr,
                                             syncInfo = syncInfo,
@@ -261,10 +279,26 @@ fun SiftApp(viewModel: NewsViewModel) {
                                             onRefresh = { viewModel.refreshFeed() },
                                             onArticleClick = { article ->
                                                 viewModel.markAsRead(article.id)
-                                                selectedArticleForDetail = article
+                                                selectedArticleForDetail = article.copy(isRead = true)
                                             },
                                             onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
                                             onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                                     onDismissArticle = { article ->
+                                         viewModel.dismissArticle(article.id)
+                                         if (selectedArticleForDetail?.id == article.id) {
+                                             selectedArticleForDetail = null
+                                         }
+                                         scope.launch {
+                                             val result = snackbarHostState.showSnackbar(
+                                                 message = "Archived: " + article.title,
+                                                 actionLabel = "Undo",
+                                                 duration = SnackbarDuration.Short
+                                             )
+                                             if (result == SnackbarResult.ActionPerformed) {
+                                                 viewModel.undoDismissArticle(article.id)
+                                             }
+                                         }
+                                     },
                                             onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() }
                                         )
                                     }
@@ -288,7 +322,6 @@ fun SiftApp(viewModel: NewsViewModel) {
                                                     selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
                                                 },
                                                 onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                                                customApiKey = customApiKey
                                             )
                                         } else {
                                             TabletWelcomePlaceholder()
@@ -304,6 +337,8 @@ fun SiftApp(viewModel: NewsViewModel) {
                                     selectedCategoryTags = selectedCategoryTags,
                                     processingMode = processingMode,
                                     searchQuery = searchQuery,
+                                    searchHistory = searchHistory,
+                                    onClearSearchHistory = { viewModel.clearSearchHistory() },
                                     isRefreshing = isRefreshing,
                                     onlyHighSnr = onlyHighSnr,
                                     intelligenceBriefingSummary = intelligenceBriefingSummary,
@@ -315,7 +350,7 @@ fun SiftApp(viewModel: NewsViewModel) {
                                     onRefresh = { viewModel.refreshFeed() },
                                     onArticleClick = { article ->
                                         viewModel.markAsRead(article.id)
-                                        selectedArticleForDetail = article
+                                        selectedArticleForDetail = article.copy(isRead = true)
                                     },
                                     onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
                                     onPlayAudio = { article -> viewModel.playArticleAudio(article) },
@@ -336,7 +371,7 @@ fun SiftApp(viewModel: NewsViewModel) {
                                         onScanNow = { viewModel.refreshFeed() },
                                         onArticleClick = { article ->
                                             viewModel.markAsRead(article.id)
-                                            selectedArticleForDetail = article
+                                            selectedArticleForDetail = article.copy(isRead = true)
                                             if (isTablet) {
                                                 currentTab = NavTab.HOME
                                             }
@@ -375,7 +410,8 @@ fun SiftApp(viewModel: NewsViewModel) {
                                     BookmarksScreen(
                                         bookmarkedArticles = bookmarkedArticles,
                                         onArticleClick = { article ->
-                                            selectedArticleForDetail = article
+                                            viewModel.markAsRead(article.id)
+                                            selectedArticleForDetail = article.copy(isRead = true)
                                             if (isTablet) {
                                                 currentTab = NavTab.HOME
                                             }
@@ -398,13 +434,23 @@ fun SiftApp(viewModel: NewsViewModel) {
                                         syncInfo = syncInfo,
                                         storageStats = storageStats,
                                         clearCacheMessage = clearCacheMessage,
+                                        isLowPowerMode = isLowPowerMode,
+                                        autoClearRetentionDays = autoClearRetentionDays,
+                                        articlesReadCount = articlesReadCount,
                                         onProcessingModeChanged = { viewModel.setProcessingMode(it) },
                                         onCustomApiKeySaved = { viewModel.setCustomApiKey(it) },
                                         onThemeModeChanged = { viewModel.setThemeMode(it) },
                                         onTriggerSync = { viewModel.refreshFeed() },
                                         onSendTestDailyDigest = { viewModel.sendDailyDigestPushNotification() },
                                         onClearOfflineCache = { keepBookmarks -> viewModel.clearOfflineCache(keepBookmarks) },
-                                        onDismissClearCacheMsg = { viewModel.dismissClearCacheMessage() }
+                                        onDismissClearCacheMsg = { viewModel.dismissClearCacheMessage() },
+                                        onLowPowerModeChanged = { viewModel.setLowPowerMode(it) },
+                                        onAutoClearRetentionDaysChanged = { viewModel.setAutoClearRetentionDays(it) },
+                                         preCacheForOffline = preCacheForOffline,
+                                         briefingHour = briefingHour,
+                                         briefingMinute = briefingMinute,
+                                         onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
+                                         onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) }
                                     )
                                 }
                             }

@@ -70,6 +70,11 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _searchHistory = MutableStateFlow<List<String>>(
+        prefs.getStringSet("search_history", setOf("AI", "Tech", "Science", "Inflation", "Quantum"))?.toList() ?: listOf("AI", "Tech", "Science", "Inflation", "Quantum")
+    )
+    val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
+
     private val _onlyHighSnr = MutableStateFlow(false)
     val onlyHighSnr: StateFlow<Boolean> = _onlyHighSnr.asStateFlow()
 
@@ -90,6 +95,60 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _clearCacheMessage = MutableStateFlow<String?>(null)
     val clearCacheMessage: StateFlow<String?> = _clearCacheMessage.asStateFlow()
 
+    private val _autoClearRetentionDays = MutableStateFlow(prefs.getInt("auto_clear_retention_days", 30))
+    val autoClearRetentionDays: StateFlow<Int> = _autoClearRetentionDays.asStateFlow()
+
+    
+    private val _preCacheForOffline = MutableStateFlow(prefs.getBoolean("pre_cache_offline", false))
+    val preCacheForOffline: StateFlow<Boolean> = _preCacheForOffline.asStateFlow()
+
+    private val _briefingHour = MutableStateFlow(prefs.getInt("briefing_hour", 8))
+    val briefingHour: StateFlow<Int> = _briefingHour.asStateFlow()
+
+    private val _briefingMinute = MutableStateFlow(prefs.getInt("briefing_minute", 0))
+    val briefingMinute: StateFlow<Int> = _briefingMinute.asStateFlow()
+
+    fun setPreCacheForOffline(enabled: Boolean) {
+        _preCacheForOffline.value = enabled
+        prefs.edit().putBoolean("pre_cache_offline", enabled).apply()
+        if (enabled) {
+            viewModelScope.launch {
+                repository.preCacheBookmarkedArticles()
+            }
+        }
+    }
+
+    fun setBriefingSchedule(hour: Int, minute: Int) {
+        _briefingHour.value = hour
+        _briefingMinute.value = minute
+        prefs.edit().putInt("briefing_hour", hour).putInt("briefing_minute", minute).apply()
+        com.example.service.NewsSyncWorker.schedulePeriodicSync(getApplication())
+    }
+
+private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mode", false))
+    val isLowPowerMode: StateFlow<Boolean> = _isLowPowerMode.asStateFlow()
+
+    fun setAutoClearRetentionDays(days: Int) {
+        _autoClearRetentionDays.value = days
+        prefs.edit().putInt("auto_clear_retention_days", days).apply()
+        if (days > 0) {
+            viewModelScope.launch {
+                repository.autoClearOldArticlesAndCache(days)
+                loadStorageStats()
+            }
+        }
+    }
+
+    fun setLowPowerMode(enabled: Boolean) {
+        _isLowPowerMode.value = enabled
+        prefs.edit().putBoolean("is_low_power_mode", enabled).apply()
+        if (enabled) {
+            androidx.work.WorkManager.getInstance(getApplication()).cancelUniqueWork(com.example.service.NewsSyncWorker.PERIODIC_WORK_NAME)
+        } else {
+            com.example.service.NewsSyncWorker.schedulePeriodicSync(getApplication())
+        }
+    }
+
     private val _intelligenceBriefingSummary = MutableStateFlow(
         prefs.getString("latest_intelligence_briefing", "Compiling daily top-priority intelligence briefing from high-SNR sources...") ?: "Daily intelligence briefing ready."
     )
@@ -105,14 +164,20 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     val bookmarkedArticles: StateFlow<List<Article>> = repository.bookmarkedArticles
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val _dismissedArticleIds = MutableStateFlow<Set<String>>(
+        prefs.getStringSet("dismissed_article_ids", emptySet()) ?: emptySet()
+    )
+    val dismissedArticleIds: StateFlow<Set<String>> = _dismissedArticleIds.asStateFlow()
+
     val filteredArticles: StateFlow<List<Article>> = combine(
         repository.allArticles,
         _selectedTimeBudget,
         _selectedCategoryTags,
         _searchQuery,
-        _onlyHighSnr
-    ) { articles, budget, categoryTags, query, highSnrOnly ->
-        var list = articles
+        combine(_onlyHighSnr, _dismissedArticleIds) { highSnr, dismissed -> Pair(highSnr, dismissed) }
+    ) { articles, budget, categoryTags, query, extraPair ->
+        val (highSnrOnly, dismissedIds) = extraPair
+        var list = articles.filter { !dismissedIds.contains(it.id) }
 
         // Multi-tag Category Filter
         if (!categoryTags.contains("ALL") && categoryTags.isNotEmpty()) {
@@ -182,6 +247,22 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         _hasActionedRatingPrompt.value = true
     }
 
+    fun dismissArticle(articleId: String) {
+        val current = _dismissedArticleIds.value.toMutableSet()
+        current.add(articleId)
+        _dismissedArticleIds.value = current
+        prefs.edit().putStringSet("dismissed_article_ids", current).apply()
+        firebaseService.logEvent("article_dismissed", mapOf("article_id" to articleId))
+    }
+
+    fun undoDismissArticle(articleId: String) {
+        val current = _dismissedArticleIds.value.toMutableSet()
+        current.remove(articleId)
+        _dismissedArticleIds.value = current
+        prefs.edit().putStringSet("dismissed_article_ids", current).apply()
+        firebaseService.logEvent("article_dismiss_undone", mapOf("article_id" to articleId))
+    }
+
     fun submitAppRating(stars: Int) {
         firebaseService.logAppRating(stars)
         _showRatingPrompt.value = false
@@ -226,6 +307,28 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+        if (query.trim().length >= 2) {
+            saveSearchQueryToHistory(query.trim())
+        }
+    }
+
+    fun saveSearchQueryToHistory(query: String) {
+        val currentList = _searchHistory.value.toMutableList()
+        currentList.remove(query)
+        currentList.add(0, query)
+        val updatedList = currentList.take(10)
+        _searchHistory.value = updatedList
+        prefs.edit().putStringSet("search_history", updatedList.toSet()).apply()
+    }
+
+    fun clearSearchHistory() {
+        _searchHistory.value = emptyList()
+        prefs.edit().remove("search_history").apply()
+    }
+
+    fun syncBookmarksWithCloud() {
+        val currentBookmarks = bookmarkedArticles.value
+        firebaseService.syncBookmarksToCloud(currentBookmarks)
     }
 
     fun toggleOnlyHighSnr() {
@@ -273,6 +376,7 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.toggleBookmark(articleId, current)
             firebaseService.logBookmarkToggle(articleId, !current)
+            syncBookmarksWithCloud()
             if (!current && !_hasActionedRatingPrompt.value) {
                 _showRatingPrompt.value = true
             }
