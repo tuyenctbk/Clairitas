@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
@@ -35,7 +35,7 @@ fun ActivityEmptyStateScreen(
     modifier: Modifier = Modifier
 ) {
     EmptyStateView(
-        icon = Icons.Default.DirectionsRun,
+        icon = Icons.AutoMirrored.Filled.DirectionsRun,
         title = "No Activity Logs Collected",
         description = "No recent reading sessions, background sync events, or keyword trap logs recorded yet. Start reading articles or running intelligence scans to log activity.",
         badgeText = "0 Activity Logs",

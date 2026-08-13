@@ -278,8 +278,9 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     fun dismissArticle(articleId: String) {
         val current = _dismissedArticleIds.value.toMutableSet()
         current.add(articleId)
-        _dismissedArticleIds.value = current
-        prefs.edit().putStringSet("dismissed_article_ids", current).apply()
+        val capped = if (current.size > 100) current.toList().takeLast(100).toSet() else current
+        _dismissedArticleIds.value = capped
+        prefs.edit().putStringSet("dismissed_article_ids", capped).apply()
         firebaseService.logEvent("article_dismissed", mapOf("article_id" to articleId))
     }
 

@@ -3,6 +3,7 @@ package com.example.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -113,6 +114,7 @@ fun HomeScreen(
     var isSearchFocused by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Column(
                 modifier = Modifier
@@ -120,6 +122,7 @@ fun HomeScreen(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
                     title = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -525,7 +528,7 @@ fun HomeScreen(
                                 SwipeToDismissBox(
                                     state = dismissState,
                                     backgroundContent = {
-                                        val color = if (dismissState.dismissDirection != null) {
+                                        val color = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
                                             MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
                                         } else {
                                             Color.Transparent

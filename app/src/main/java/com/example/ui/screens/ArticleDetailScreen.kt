@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -166,8 +167,10 @@ fun ArticleDetailScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -418,7 +421,14 @@ fun ArticleDetailScreen(
                 "French" to "fr",
                 "German" to "de",
                 "Japanese" to "ja",
-                "Chinese" to "zh-CN"
+                "Korean" to "ko",
+                "Chinese" to "zh-CN",
+                "Portuguese" to "pt",
+                "Italian" to "it",
+                "Hindi" to "hi",
+                "Russian" to "ru",
+                "Arabic" to "ar",
+                "Thai" to "th"
             )
             androidx.compose.foundation.lazy.LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1059,7 +1069,7 @@ fun ArticleDetailScreen(
         }
 
         LinearProgressIndicator(
-            progress = readingProgress,
+            progress = { readingProgress },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(3.dp)

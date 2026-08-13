@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -382,44 +383,61 @@ fun OnboardingDetails(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 val countries = listOf(
                     "Global / International (English)",
                     "United States (US)",
                     "United Kingdom (UK)",
                     "Europe (EU)",
-                    "Singapore / Asia-Pacific (APAC)",
-                    "Vietnam (VN)"
+                    "Japan (JP)",
+                    "Germany (DE)",
+                    "France (FR)",
+                    "South Korea (KR)",
+                    "India (IN)",
+                    "China / East Asia (CN/APAC)",
+                    "Singapore / SE Asia (SG/APAC)",
+                    "Vietnam (VN)",
+                    "Latin America (LATAM)",
+                    "Australia / New Zealand (ANZ)",
+                    "Canada (CA)",
+                    "Brazil (BR)"
                 )
-                countries.forEach { country ->
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (selectedCountry == country) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .border(
-                                width = 1.dp,
-                                color = if (selectedCountry == country) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .clickable { onCountrySelected(country) }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    countries.forEach { country ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (selectedCountry == country) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = if (selectedCountry == country) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { onCountrySelected(country) }
                         ) {
-                            Text(
-                                text = country,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (selectedCountry == country) FontWeight.Bold else FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = country,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (selectedCountry == country) FontWeight.Bold else FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Select Default App Language:",
                     style = MaterialTheme.typography.bodySmall,
@@ -434,7 +452,18 @@ fun OnboardingDetails(
                     "Spanish" to "es",
                     "French" to "fr",
                     "German" to "de",
-                    "Japanese" to "ja"
+                    "Japanese" to "ja",
+                    "Korean" to "ko",
+                    "Chinese (Simp)" to "zh-CN",
+                    "Chinese (Trad)" to "zh-TW",
+                    "Portuguese" to "pt",
+                    "Italian" to "it",
+                    "Hindi" to "hi",
+                    "Russian" to "ru",
+                    "Arabic" to "ar",
+                    "Dutch" to "nl",
+                    "Indonesian" to "id",
+                    "Thai" to "th"
                 )
 
                 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)

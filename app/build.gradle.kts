@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -14,7 +15,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.sift.newsintel"
+    applicationId = "com.soloprono.sift"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
@@ -25,17 +26,16 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
-    }
-    create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      val localProps = Properties()
+      val localPropsFile = rootProject.file("local.properties")
+      if (localPropsFile.exists()) {
+        localPropsFile.inputStream().use { stream -> localProps.load(stream) }
+      }
+      val storeFileName = localProps.getProperty("RELEASE_STORE_FILE") ?: "common_release_key.jks"
+      storeFile = rootProject.file(storeFileName)
+      storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD") ?: "dpadhero123"
+      keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS") ?: "dpad_hero_alias"
+      keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD") ?: "dpadhero123"
     }
   }
 
@@ -46,7 +46,7 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug { signingConfig = signingConfigs.getByName("debug") }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11

@@ -277,15 +277,24 @@ fun SettingsScreen(
                     "French" to "fr",
                     "German" to "de",
                     "Japanese" to "ja",
-                    "Chinese" to "zh-CN",
-                    "Korean" to "ko"
+                    "Korean" to "ko",
+                    "Chinese (Simp)" to "zh-CN",
+                    "Chinese (Trad)" to "zh-TW",
+                    "Portuguese" to "pt",
+                    "Italian" to "it",
+                    "Hindi" to "hi",
+                    "Russian" to "ru",
+                    "Arabic" to "ar",
+                    "Dutch" to "nl",
+                    "Indonesian" to "id",
+                    "Thai" to "th"
                 )
 
                 androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
                     columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(140.dp)
+                    modifier = Modifier.height(180.dp)
                 ) {
                     items(availableLanguages.size) { index ->
                         val (name, code) = availableLanguages[index]

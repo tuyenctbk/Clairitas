@@ -26,33 +26,6 @@ data class ClearCacheResult(
     val freedBytes: Long = 0L
 )
 
-// In-memory thread-safe LRU Cache backed by LinkedHashMap for article metadata
-class ArticleLruCache(private val maxEntries: Int = 50) {
-    private val map = object : LinkedHashMap<String, Article>(maxEntries, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Article>?): Boolean {
-            return size > maxEntries
-        }
-    }
-
-    @Synchronized
-    fun get(key: String): Article? = map[key]
-
-    @Synchronized
-    fun put(key: String, value: Article) {
-        map[key] = value
-    }
-
-    @Synchronized
-    fun remove(key: String) {
-        map.remove(key)
-    }
-
-    @Synchronized
-    fun clear() {
-        map.clear()
-    }
-}
-
 class NewsRepository(
     private val context: Context,
     private val db: AppDatabase = AppDatabase.getDatabase(context),
@@ -61,8 +34,8 @@ class NewsRepository(
     private val articleDao = db.articleDao()
     private val keywordTrapDao = db.keywordTrapDao()
 
-    // In-memory LRU Cache for article metadata using LinkedHashMap (max 50 entries)
-    private val articleLruCache = ArticleLruCache(50)
+    // In-memory LRU Cache for article metadata using android.util.LruCache (max 50 entries)
+    private val articleLruCache = LruCache<String, Article>(50)
     val firebaseSyncManager = com.example.service.FirebaseSyncManager(context, articleDao)
 
     val allArticles: Flow<List<Article>> = articleDao.getAllArticles().map { entities ->
@@ -74,19 +47,11 @@ class NewsRepository(
     }
 
     val bookmarkedArticles: Flow<List<Article>> = articleDao.getBookmarkedArticles().map { entities ->
-        entities.map { entity ->
-            val article = entity.toArticle()
-            articleLruCache.put(article.id, article)
-            article
-        }
+        entities.map { entity -> entity.toArticle() }
     }
 
     val readArticles: Flow<List<Article>> = articleDao.getReadArticles().map { entities ->
-        entities.map { entity ->
-            val article = entity.toArticle()
-            articleLruCache.put(article.id, article)
-            article
-        }
+        entities.map { entity -> entity.toArticle() }
     }
 
     val allKeywordTraps: Flow<List<KeywordTrapEntity>> = keywordTrapDao.getAllTraps()
@@ -542,10 +507,10 @@ class NewsRepository(
     suspend fun preCacheBookmarkedArticles(): Int = withContext(Dispatchers.IO) {
         val bookmarkedEntities = articleDao.getBookmarkedArticlesList()
         var count = 0
+        val loader = coil.ImageLoader(context)
         bookmarkedEntities.forEach { entity ->
             if (entity.imageUrl.isNotBlank()) {
                 try {
-                    val loader = coil.ImageLoader(context)
                     val request = coil.request.ImageRequest.Builder(context)
                         .data(entity.imageUrl)
                         .build()

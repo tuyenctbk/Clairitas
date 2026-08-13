@@ -9,7 +9,12 @@ import java.util.Locale
 
 object LanguageHelper {
     fun setAppLanguage(context: Context, languageCode: String) {
-        val locale = Locale(languageCode)
+        val locale = if (languageCode.contains("-")) {
+            val parts = languageCode.split("-")
+            Locale.Builder().setLanguage(parts[0]).setRegion(parts[1]).build()
+        } else {
+            Locale.forLanguageTag(languageCode)
+        }
         Locale.setDefault(locale)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -17,8 +22,9 @@ object LanguageHelper {
             localeManager?.applicationLocales = LocaleList(locale)
         } else {
             val resources = context.resources
-            val configuration = resources.configuration
+            val configuration = Configuration(resources.configuration)
             configuration.setLocale(locale)
+            @Suppress("DEPRECATION")
             resources.updateConfiguration(configuration, resources.displayMetrics)
         }
     }
