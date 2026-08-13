@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
@@ -80,6 +81,7 @@ fun SettingsScreen(
     customApiKey: String,
     currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
     currentLanguageCode: String = "en",
+    selectedCountry: String = "Global / International (English)",
     syncInfo: BackgroundSyncInfo = BackgroundSyncInfo(),
     storageStats: StorageStats = StorageStats(),
     clearCacheMessage: String? = null,
@@ -98,6 +100,7 @@ fun SettingsScreen(
     onCustomApiKeySaved: (String) -> Unit,
     onThemeModeChanged: (ThemeMode) -> Unit = {},
     onLanguageCodeChanged: (String) -> Unit = {},
+    onCountryChanged: (String) -> Unit = {},
     onReaderFontSizeChanged: (Int) -> Unit = {},
     onReaderTypefaceChanged: (String) -> Unit = {},
     onTriggerSync: () -> Unit = {},
@@ -234,6 +237,103 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Target Country & Regional Intelligence Card
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("country_settings_card")
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Public,
+                        contentDescription = "Target Country",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = com.example.util.AppStrings.getCountrySettingTitle(currentLanguageCode),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = com.example.util.AppStrings.getCountrySettingSubtitle(currentLanguageCode),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                val countries = listOf(
+                    "Global / International (English)",
+                    "United States (US)",
+                    "United Kingdom (UK)",
+                    "Europe (EU)",
+                    "Japan (JP)",
+                    "Germany (DE)",
+                    "France (FR)",
+                    "South Korea (KR)",
+                    "India (IN)",
+                    "China / East Asia (CN/APAC)",
+                    "Singapore / SE Asia (SG/APAC)",
+                    "Vietnam (VN)",
+                    "Latin America (LATAM)",
+                    "Australia / New Zealand (ANZ)",
+                    "Canada (CA)",
+                    "Brazil (BR)"
+                )
+
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    countries.forEach { country ->
+                        val isSelected = selectedCountry == country
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                            border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onCountryChanged(country) }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isSelected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = country,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // App Language & Translation Card
         Card(
             shape = RoundedCornerShape(12.dp),
@@ -254,7 +354,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "App Language & Interface",
+                        text = com.example.util.AppStrings.getLanguageSettingTitle(currentLanguageCode),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -262,7 +362,7 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Select your default language for both the user interface and AI article translation services.",
+                    text = com.example.util.AppStrings.getLanguageSettingSubtitle(currentLanguageCode),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 11.5.sp
@@ -290,25 +390,25 @@ fun SettingsScreen(
                     "Thai" to "th"
                 )
 
-                androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                    columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(340.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(availableLanguages.size) { index ->
-                        val (name, code) = availableLanguages[index]
+                    availableLanguages.forEach { (name, code) ->
                         val isSelected = currentLanguageCode == code
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                            border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
                                 .clickable { onLanguageCodeChanged(code) }
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
                                 Icon(
                                     imageVector = if (isSelected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
@@ -316,7 +416,7 @@ fun SettingsScreen(
                                     tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = name,
                                     style = MaterialTheme.typography.bodySmall,
@@ -915,16 +1015,18 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     listOf(7, 8, 9, 12, 18, 20).forEach { hour ->
                         val isSelected = briefingHour == hour
                         FilterChip(
                             selected = isSelected,
                             onClick = { onBriefingScheduleChanged(hour, 0) },
-                            label = { Text(String.format("%02d:00", hour), fontSize = 11.sp) },
+                            label = { Text(String.format("%02d:00", hour), fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold) },
                             modifier = Modifier.testTag("briefing_hour_$hour")
                         )
                     }

@@ -135,6 +135,7 @@ fun SiftApp(viewModel: NewsViewModel) {
     val storageStats by viewModel.storageStats.collectAsStateWithLifecycle()
     val clearCacheMessage by viewModel.clearCacheMessage.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
+    val selectedCountry by viewModel.selectedCountry.collectAsStateWithLifecycle()
     val intelligenceBriefingSummary by viewModel.intelligenceBriefingSummary.collectAsStateWithLifecycle()
     val autoClearRetentionDays by viewModel.autoClearRetentionDays.collectAsStateWithLifecycle()
     val isLowPowerMode by viewModel.isLowPowerMode.collectAsStateWithLifecycle()
@@ -171,7 +172,8 @@ fun SiftApp(viewModel: NewsViewModel) {
             if (!isTablet && selectedArticleForDetail == null) {
                 BottomNavigationBar(
                     currentTab = currentTab,
-                    onTabSelected = { tab -> currentTab = tab }
+                    onTabSelected = { tab -> currentTab = tab },
+                    appLanguage = appLanguage
                 )
             }
         }
@@ -457,7 +459,9 @@ fun SiftApp(viewModel: NewsViewModel) {
                                         customApiKey = customApiKey,
                                         currentThemeMode = themeMode,
                                         currentLanguageCode = appLanguage,
+                                        selectedCountry = selectedCountry,
                                         onLanguageCodeChanged = { viewModel.setAppLanguage(context, it) },
+                                        onCountryChanged = { viewModel.setSelectedCountry(it) },
                                         syncInfo = syncInfo,
                                         storageStats = storageStats,
                                         clearCacheMessage = clearCacheMessage,

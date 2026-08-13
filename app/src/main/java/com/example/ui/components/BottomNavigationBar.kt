@@ -37,6 +37,7 @@ enum class NavTab(
 fun BottomNavigationBar(
     currentTab: NavTab,
     onTabSelected: (NavTab) -> Unit,
+    appLanguage: String = "en",
     modifier: Modifier = Modifier
 ) {
     NavigationBar(
@@ -44,16 +45,17 @@ fun BottomNavigationBar(
     ) {
         NavTab.entries.forEach { tab ->
             val selected = tab == currentTab
+            val localizedTitle = com.example.util.AppStrings.getNavTitle(tab, appLanguage)
             NavigationBarItem(
                 selected = selected,
                 onClick = { onTabSelected(tab) },
                 icon = {
                     Icon(
                         imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
-                        contentDescription = tab.title
+                        contentDescription = localizedTitle
                     )
                 },
-                label = { Text(text = tab.title) },
+                label = { Text(text = localizedTitle) },
                 modifier = Modifier.testTag("nav_item_${tab.route}")
             )
         }
