@@ -294,7 +294,7 @@ fun SettingsScreen(
                     columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(180.dp)
+                    modifier = Modifier.height(340.dp)
                 ) {
                     items(availableLanguages.size) { index ->
                         val (name, code) = availableLanguages[index]
@@ -452,7 +452,10 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Sync,
                             contentDescription = "Background Sync",
@@ -467,15 +470,17 @@ fun SettingsScreen(
                         )
                     }
 
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = if (syncInfo.isOnline) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer
+                        color = if (syncInfo.isOnline) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
                             text = if (syncInfo.isOnline) "🟢 Online" else "🔴 Offline",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (syncInfo.isOnline) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                            color = if (syncInfo.isOnline) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -490,38 +495,41 @@ fun SettingsScreen(
                     fontSize = 12.sp
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column {
-                        Text(
-                            text = "WorkManager Schedule: Every Morning",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = if (syncInfo.isSyncing) "Syncing in progress..." else "Room database active and synced",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "WorkManager Schedule: Every Morning",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = if (syncInfo.isSyncing) "Syncing in progress..." else "Room database active and synced",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         OutlinedButton(
                             onClick = onSendTestDailyDigest,
                             shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.testTag("send_daily_digest_notification_button")
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("send_daily_digest_notification_button")
                         ) {
                             Text(
                                 text = "🌅 Test Digest",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
                             )
                         }
 
@@ -529,12 +537,21 @@ fun SettingsScreen(
                             onClick = onTriggerSync,
                             shape = RoundedCornerShape(8.dp),
                             enabled = !syncInfo.isSyncing,
-                            modifier = Modifier.testTag("trigger_sync_button")
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("trigger_sync_button")
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = if (syncInfo.isSyncing) "Syncing..." else "Sync Now",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
                             )
                         }
                     }

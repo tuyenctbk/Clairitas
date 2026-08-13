@@ -259,9 +259,12 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     }
 
     fun setAppLanguage(context: android.content.Context, langCode: String) {
-        _appLanguage.value = langCode
-        prefs.edit().putString("app_language", langCode).apply()
-        com.example.util.LanguageHelper.setAppLanguage(context, langCode)
+        if (_appLanguage.value != langCode) {
+            _appLanguage.value = langCode
+            prefs.edit().putString("app_language", langCode).apply()
+            com.example.util.LanguageHelper.setAppLanguage(context, langCode)
+            (context as? android.app.Activity)?.recreate()
+        }
     }
 
     fun setSelectedCountry(country: String) {

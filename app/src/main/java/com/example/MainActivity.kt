@@ -71,6 +71,13 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: NewsViewModel by viewModels()
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val prefs = newBase.getSharedPreferences("sift_prefs", android.content.Context.MODE_PRIVATE)
+        val langCode = prefs.getString("app_language", "en") ?: "en"
+        val wrappedContext = com.example.util.LanguageHelper.wrapContext(newBase, langCode)
+        super.attachBaseContext(wrappedContext)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
