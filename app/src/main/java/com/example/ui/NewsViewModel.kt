@@ -34,6 +34,40 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val syncManager = BackgroundSyncManager(application)
     val syncInfo: StateFlow<BackgroundSyncInfo> = syncManager.syncInfo
 
+    val authManager = com.example.service.AuthManager.getInstance(application)
+    val currentUser = authManager.currentUser
+    val authStatusMessage = authManager.authStatusMessage
+
+    private val _isGlobalLoading = MutableStateFlow(false)
+    val isGlobalLoading: StateFlow<Boolean> = _isGlobalLoading.asStateFlow()
+
+    private val _globalLoadingMessage = MutableStateFlow("Fetching intelligence feed...")
+    val globalLoadingMessage: StateFlow<String> = _globalLoadingMessage.asStateFlow()
+
+    private val _isGeminiOperation = MutableStateFlow(true)
+    val isGeminiOperation: StateFlow<Boolean> = _isGeminiOperation.asStateFlow()
+
+    fun signInWithGoogle(context: Context, onComplete: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            _isGlobalLoading.value = true
+            _globalLoadingMessage.value = "Signing in with Google Auth..."
+            _isGeminiOperation.value = false
+            try {
+                authManager.signInWithGoogle(context = context, onComplete = onComplete)
+            } finally {
+                _isGlobalLoading.value = false
+            }
+        }
+    }
+
+    fun signInAsGuest(displayName: String = "Demo User", email: String = "user@siftnews.ai") {
+        authManager.signInAsGuest(displayName, email)
+    }
+
+    fun signOut() {
+        authManager.signOut()
+    }
+
     private val _themeMode = MutableStateFlow(
         ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
     )
@@ -360,9 +394,16 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
 
     fun syncBookmarksWithCloud() {
         viewModelScope.launch {
-            repository.firebaseSyncManager.restoreBookmarksFromCloud()
-            val currentBookmarks = bookmarkedArticles.value
-            firebaseService.syncBookmarksToCloud(currentBookmarks)
+            _isGlobalLoading.value = true
+            _globalLoadingMessage.value = "Syncing bookmarks with Firebase Firestore..."
+            _isGeminiOperation.value = false
+            try {
+                repository.firebaseSyncManager.restoreBookmarksFromCloud()
+                val currentBookmarks = bookmarkedArticles.value
+                firebaseService.syncBookmarksToCloud(currentBookmarks)
+            } finally {
+                _isGlobalLoading.value = false
+            }
         }
     }
 
@@ -378,6 +419,13 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     fun refreshFeed() {
         viewModelScope.launch {
             _isRefreshing.value = true
+            _isGlobalLoading.value = true
+            _isGeminiOperation.value = _selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD
+            _globalLoadingMessage.value = if (_selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD) {
+                "Synthesizing stories with Gemini AI..."
+            } else {
+                "Fetching news & processing TextRank signal..."
+            }
             _feedError.value = null
             try {
                 repository.refreshNewsFeed(
@@ -388,6 +436,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
                 _feedError.value = e.localizedMessage ?: e.message ?: "An unexpected error occurred during refresh"
             } finally {
                 _isRefreshing.value = false
+                _isGlobalLoading.value = false
                 loadStorageStats()
             }
         }

@@ -65,6 +65,10 @@ import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.NewsRadarScreen
 import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.SettingsScreen
+import com.example.ui.components.GlobalLoadingOverlay
+import com.example.ui.navigation.SiftNavGraph
+import com.example.ui.navigation.Screen
+import androidx.navigation.compose.rememberNavController
 import com.example.ui.theme.SiftTheme
 
 class MainActivity : ComponentActivity() {
@@ -152,6 +156,11 @@ fun SiftApp(viewModel: NewsViewModel) {
     val currentAudioTitle by viewModel.audioManager.currentTitle.collectAsStateWithLifecycle()
     val speechSpeed by viewModel.audioManager.currentSpeechSpeed.collectAsStateWithLifecycle()
 
+    val isGlobalLoading by viewModel.isGlobalLoading.collectAsStateWithLifecycle()
+    val globalLoadingMessage by viewModel.globalLoadingMessage.collectAsStateWithLifecycle()
+    val isGeminiOperation by viewModel.isGeminiOperation.collectAsStateWithLifecycle()
+
+    val navController = rememberNavController()
     val isTablet = LocalConfiguration.current.screenWidthDp >= 720
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -164,15 +173,30 @@ fun SiftApp(viewModel: NewsViewModel) {
         )
     }
 
+    // Global Overlay for Gemini API & Firestore operation feedback
+    GlobalLoadingOverlay(
+        isVisible = isGlobalLoading,
+        message = globalLoadingMessage,
+        isGeminiOperation = isGeminiOperation
+    )
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            // Only show bottom navigation on mobile devices and when not viewing article detail
-            if (!isTablet && selectedArticleForDetail == null) {
+            if (!isTablet) {
                 BottomNavigationBar(
                     currentTab = currentTab,
-                    onTabSelected = { tab -> currentTab = tab },
+                    onTabSelected = { tab ->
+                        currentTab = tab
+                        when (tab) {
+                            NavTab.HOME -> navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } }
+                            NavTab.RADAR -> navController.navigate(Screen.Radar.route) { launchSingleTop = true }
+                            NavTab.AUDIO -> navController.navigate(Screen.Audio.route) { launchSingleTop = true }
+                            NavTab.BOOKMARKS -> navController.navigate(Screen.Bookmarks.route) { launchSingleTop = true }
+                            NavTab.SETTINGS -> navController.navigate(Screen.Settings.route) { launchSingleTop = true }
+                        }
+                    },
                     appLanguage = appLanguage
                 )
             }
@@ -183,15 +207,12 @@ fun SiftApp(viewModel: NewsViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // 1. Navigation Rail for Tablet Screens
             if (isTablet) {
                 NavigationRail(
                     modifier = Modifier.testTag("tablet_navigation_rail"),
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                 ) {
                     Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Brand Logo on Rail
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary,
@@ -206,36 +227,40 @@ fun SiftApp(viewModel: NewsViewModel) {
                                 .size(24.dp)
                         )
                     }
-
                     Spacer(modifier = Modifier.weight(1f))
-
-                    // Rail Navigation Items
                     NavTab.entries.forEach { tab ->
                         val selected = tab == currentTab
                         NavigationRailItem(
                             selected = selected,
-                            onClick = { currentTab = tab },
+                            onClick = {
+                                currentTab = tab
+                                when (tab) {
+                                    NavTab.HOME -> navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } }
+                                    NavTab.RADAR -> navController.navigate(Screen.Radar.route) { launchSingleTop = true }
+                                    NavTab.AUDIO -> navController.navigate(Screen.Audio.route) { launchSingleTop = true }
+                                    NavTab.BOOKMARKS -> navController.navigate(Screen.Bookmarks.route) { launchSingleTop = true }
+                                    NavTab.SETTINGS -> navController.navigate(Screen.Settings.route) { launchSingleTop = true }
+                                }
+                            },
                             icon = {
                                 Icon(
                                     imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
                                     contentDescription = tab.title
                                 )
                             },
-                            label = { 
+                            label = {
                                 Text(
                                     text = tab.title,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
-                                ) 
+                                )
                             },
                             modifier = Modifier.testTag("nav_rail_item_${tab.route}")
                         )
                     }
-
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
-                // Vertical separator between Rail and Content
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -244,262 +269,19 @@ fun SiftApp(viewModel: NewsViewModel) {
                 )
             }
 
-            // 2. Main Content Frame
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                if (!isTablet && selectedArticleForDetail != null) {
-                    // Mobile Article Detail Reader View (Full screen overlay)
-                    ArticleDetailScreen(
-                        article = selectedArticleForDetail,
-                        onBack = { selectedArticleForDetail = null },
-                        onBookmarkToggle = { article ->
-                            viewModel.toggleBookmark(article.id, article.isBookmarked)
-                            selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
-                        },
-                        onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                        customApiKey = customApiKey,
-                        speechSpeed = speechSpeed,
-                        onSpeedChange = { viewModel.audioManager.setSpeed(it) },
-                        initialFontSize = readerFontSize,
-                        initialTypeface = readerTypeface,
-                        onFontSizeChanged = { viewModel.setReaderFontSize(it) },
-                        onTypefaceChanged = { viewModel.setReaderTypeface(it) }
-                    )
-                } else {
-                    // Tab Content (Tablet embeds detail side-by-side under HOME tab)
-                    when (currentTab) {
-                        NavTab.HOME -> {
-                            if (isTablet) {
-                                // List-Detail Canonical split layout for tablets
-                                Row(modifier = Modifier.fillMaxSize()) {
-                                    // Left side list
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                                        HomeScreen(
-                                            feedError = feedError,
-                                            onClearError = { viewModel.clearFeedError() },
-                                            articles = filteredArticles,
-                                            timeBudget = timeBudget,
-                                            selectedCategory = selectedCategory,
-                                            selectedCategoryTags = selectedCategoryTags,
-                                            processingMode = processingMode,
-                                            searchQuery = searchQuery,
-                                            searchHistory = searchHistory,
-                                            onClearSearchHistory = { viewModel.clearSearchHistory() },
-                                            isRefreshing = isRefreshing,
-                                            onlyHighSnr = onlyHighSnr,
-                                            syncInfo = syncInfo,
-                                            intelligenceBriefingSummary = intelligenceBriefingSummary,
-                                            onTimeBudgetChanged = { viewModel.setTimeBudget(it) },
-                                            onCategoryChanged = { viewModel.setCategory(it) },
-                                            onToggleCategoryTag = { viewModel.toggleCategoryTag(it) },
-                                            onSearchQueryChanged = { viewModel.setSearchQuery(it) },
-                                            onToggleOnlyHighSnr = { viewModel.toggleOnlyHighSnr() },
-                                            onRefresh = { viewModel.refreshFeed() },
-                                            onArticleClick = { article ->
-                                                viewModel.markAsRead(article.id)
-                                                selectedArticleForDetail = article.copy(isRead = true)
-                                            },
-                                            onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                            onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                                     onDismissArticle = { article ->
-                                         viewModel.dismissArticle(article.id)
-                                         if (selectedArticleForDetail?.id == article.id) {
-                                             selectedArticleForDetail = null
-                                         }
-                                         scope.launch {
-                                             val result = snackbarHostState.showSnackbar(
-                                                 message = "Archived: " + article.title,
-                                                 actionLabel = "Undo",
-                                                 duration = SnackbarDuration.Short
-                                             )
-                                             if (result == SnackbarResult.ActionPerformed) {
-                                                 viewModel.undoDismissArticle(article.id)
-                                             }
-                                         }
-                                     },
-                                            onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() }
-                                        )
-                                    }
+                SiftNavGraph(
+                    navController = navController,
+                    viewModel = viewModel,
+                    snackbarHostState = snackbarHostState,
+                    scope = scope,
+                    modifier = Modifier.fillMaxSize()
+                )
 
-                                    // Vertical inner separator
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(1.dp)
-                                            .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-                                    )
-
-                                    // Right side detail reader or dynamic welcome placeholder
-                                    Box(modifier = Modifier.weight(1.25f).fillMaxHeight()) {
-                                        if (selectedArticleForDetail != null) {
-                                            ArticleDetailScreen(
-                                                article = selectedArticleForDetail,
-                                                onBack = { selectedArticleForDetail = null },
-                                                onBookmarkToggle = { article ->
-                                                    viewModel.toggleBookmark(article.id, article.isBookmarked)
-                                                    selectedArticleForDetail = article.copy(isBookmarked = !article.isBookmarked)
-                                                },
-                                                onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                                                speechSpeed = speechSpeed,
-                                                onSpeedChange = { viewModel.audioManager.setSpeed(it) },
-                                                initialFontSize = readerFontSize,
-                                                initialTypeface = readerTypeface,
-                                                onFontSizeChanged = { viewModel.setReaderFontSize(it) },
-                                                onTypefaceChanged = { viewModel.setReaderTypeface(it) }
-                                            )
-                                        } else {
-                                            TabletWelcomePlaceholder()
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Mobile Home Screen layout
-                                HomeScreen(
-                                    feedError = feedError,
-                                    onClearError = { viewModel.clearFeedError() },
-                                    articles = filteredArticles,
-                                    timeBudget = timeBudget,
-                                    selectedCategory = selectedCategory,
-                                    selectedCategoryTags = selectedCategoryTags,
-                                    processingMode = processingMode,
-                                    searchQuery = searchQuery,
-                                    searchHistory = searchHistory,
-                                    onClearSearchHistory = { viewModel.clearSearchHistory() },
-                                    isRefreshing = isRefreshing,
-                                    onlyHighSnr = onlyHighSnr,
-                                    intelligenceBriefingSummary = intelligenceBriefingSummary,
-                                    onTimeBudgetChanged = { viewModel.setTimeBudget(it) },
-                                    onCategoryChanged = { viewModel.setCategory(it) },
-                                    onToggleCategoryTag = { viewModel.toggleCategoryTag(it) },
-                                    onSearchQueryChanged = { viewModel.setSearchQuery(it) },
-                                    onToggleOnlyHighSnr = { viewModel.toggleOnlyHighSnr() },
-                                    onRefresh = { viewModel.refreshFeed() },
-                                    onArticleClick = { article ->
-                                        viewModel.markAsRead(article.id)
-                                        selectedArticleForDetail = article.copy(isRead = true)
-                                    },
-                                    onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                    onPlayAudio = { article -> viewModel.playArticleAudio(article) },
-                                    onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() },
-                                    syncInfo = syncInfo
-                                )
-                            }
-                        }
-                        NavTab.RADAR -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                                Box(modifier = Modifier.widthIn(max = 680.dp).fillMaxHeight()) {
-                                    NewsRadarScreen(
-                                        keywordTraps = keywordTraps,
-                                        allArticles = filteredArticles,
-                                        onAddTrap = { keyword -> viewModel.addKeywordTrap(keyword) },
-                                        onDeleteTrap = { id -> viewModel.deleteKeywordTrap(id) },
-                                        onToggleTrap = { id, active -> viewModel.toggleKeywordTrap(id, active) },
-                                        onScanNow = { viewModel.refreshFeed() },
-                                        onArticleClick = { article ->
-                                            viewModel.markAsRead(article.id)
-                                            selectedArticleForDetail = article.copy(isRead = true)
-                                            if (isTablet) {
-                                                currentTab = NavTab.HOME
-                                            }
-                                        },
-                                        onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                        onPlayAudio = { article -> viewModel.playArticleAudio(article) }
-                                    )
-                                }
-                            }
-                        }
-                        NavTab.AUDIO -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                                Box(modifier = Modifier.widthIn(max = 680.dp).fillMaxHeight()) {
-                                    AudioDigestScreen(
-                                        articles = filteredArticles,
-                                        playbackState = playbackState,
-                                        currentAudioTitle = currentAudioTitle,
-                                        speechSpeed = speechSpeed,
-                                        onPlay3MinuteDigest = { viewModel.play3MinuteMorningDigest() },
-                                        onPlayArticle = { article -> viewModel.playArticleAudio(article) },
-                                        onPlayPauseToggle = {
-                                            if (playbackState == com.example.service.PlaybackState.PLAYING) {
-                                                viewModel.audioManager.pause()
-                                            } else {
-                                                viewModel.audioManager.resume()
-                                            }
-                                        },
-                                        onSpeedChange = { speed -> viewModel.audioManager.setSpeed(speed) }
-                                    )
-                                }
-                            }
-                        }
-                        NavTab.BOOKMARKS -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                                Box(modifier = Modifier.widthIn(max = 680.dp).fillMaxHeight()) {
-                                    BookmarksScreen(
-                                        bookmarkedArticles = bookmarkedArticles,
-                                        onArticleClick = { article ->
-                                            viewModel.markAsRead(article.id)
-                                            selectedArticleForDetail = article.copy(isRead = true)
-                                            if (isTablet) {
-                                                currentTab = NavTab.HOME
-                                            }
-                                        },
-                                        onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                                        onPlayAudio = { article -> viewModel.playArticleAudio(article) }
-                                    )
-                                }
-                            }
-                        }
-                        NavTab.SETTINGS -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                                Box(modifier = Modifier.widthIn(max = 680.dp).fillMaxHeight()) {
-                                    SettingsScreen(
-                                        currentProcessingMode = processingMode,
-                                        customApiKey = customApiKey,
-                                        currentThemeMode = themeMode,
-                                        currentLanguageCode = appLanguage,
-                                        selectedCountry = selectedCountry,
-                                        onLanguageCodeChanged = { viewModel.setAppLanguage(context, it) },
-                                        onCountryChanged = { viewModel.setSelectedCountry(it) },
-                                        syncInfo = syncInfo,
-                                        storageStats = storageStats,
-                                        clearCacheMessage = clearCacheMessage,
-                                        isLowPowerMode = isLowPowerMode,
-                                        autoClearRetentionDays = autoClearRetentionDays,
-                                        articlesReadCount = articlesReadCount,
-                                        onProcessingModeChanged = { viewModel.setProcessingMode(it) },
-                                        onCustomApiKeySaved = { viewModel.setCustomApiKey(it) },
-                                        onThemeModeChanged = { viewModel.setThemeMode(it) },
-                                        onTriggerSync = { viewModel.refreshFeed() },
-                                        onSendTestDailyDigest = { viewModel.sendDailyDigestPushNotification() },
-                                        onClearOfflineCache = { keepBookmarks -> viewModel.clearOfflineCache(keepBookmarks) },
-                                        onDismissClearCacheMsg = { viewModel.dismissClearCacheMessage() },
-                                        onLowPowerModeChanged = { viewModel.setLowPowerMode(it) },
-                                        onAutoClearRetentionDaysChanged = { viewModel.setAutoClearRetentionDays(it) },
-                                        preCacheForOffline = preCacheForOffline,
-                                        briefingHour = briefingHour,
-                                        briefingMinute = briefingMinute,
-                                        readerFontSize = readerFontSize,
-                                        readerTypeface = readerTypeface,
-                                        readArticles = readArticles,
-                                        onArticleClick = { article ->
-                                            viewModel.markAsRead(article.id)
-                                            selectedArticleForDetail = article.copy(isRead = true)
-                                        },
-                                        onClearReadingHistory = { viewModel.clearReadingHistory() },
-                                        onReaderFontSizeChanged = { viewModel.setReaderFontSize(it) },
-                                        onReaderTypefaceChanged = { viewModel.setReaderTypeface(it) },
-                                        onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
-                                        onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Floating Persistent Audio Bar (properly positioned)
                 AudioPlayerBar(
                     playbackState = playbackState,
                     currentTitle = currentAudioTitle,

@@ -94,6 +94,10 @@ fun SettingsScreen(
     readerFontSize: Int = 18,
     readerTypeface: String = "Serif",
     readArticles: List<Article> = emptyList(),
+    currentUser: com.google.firebase.auth.FirebaseUser? = null,
+    onSignInGoogle: () -> Unit = {},
+    onSignInGuest: () -> Unit = {},
+    onSignOut: () -> Unit = {},
     onArticleClick: (Article) -> Unit = {},
     onClearReadingHistory: () -> Unit = {},
     onProcessingModeChanged: (ProcessingMode) -> Unit,
@@ -161,6 +165,112 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Account & Firebase Google Sign-In Card
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("account_sign_in_card")
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Shield,
+                                contentDescription = "Account",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (currentUser != null) (currentUser.displayName ?: "Authenticated User") else "Account & Cloud Sync",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (currentUser != null) (currentUser.email ?: "Firebase Auth Connected") else "Sign in with Google to sync bookmarks across devices",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                if (currentUser != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            Text(
+                                text = "Firebase Auth Active",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = onSignOut,
+                            modifier = Modifier.testTag("sign_out_button")
+                        ) {
+                            Text("Sign Out", fontSize = 12.sp)
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = onSignInGoogle,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("google_sign_in_button")
+                        ) {
+                            Text("Sign in with Google", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        OutlinedButton(
+                            onClick = onSignInGuest,
+                            modifier = Modifier.testTag("guest_sign_in_button")
+                        ) {
+                            Text("Demo Sign In", fontSize = 12.sp)
+                        }
+                    }
+                }
             }
         }
 

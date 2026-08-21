@@ -25,17 +25,11 @@ android {
   }
 
   signingConfigs {
-    create("release") {
-      val localProps = Properties()
-      val localPropsFile = rootProject.file("local.properties")
-      if (localPropsFile.exists()) {
-        localPropsFile.inputStream().use { stream -> localProps.load(stream) }
-      }
-      val storeFileName = localProps.getProperty("RELEASE_STORE_FILE") ?: "common_release_key.jks"
-      storeFile = rootProject.file(storeFileName)
-      storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD") ?: "dpadhero123"
-      keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS") ?: "dpad_hero_alias"
-      keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD") ?: "dpadhero123"
+    create("debugConfig") {
+      storeFile = file("${rootDir}/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
     }
   }
 
@@ -44,9 +38,8 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debug") }
+    debug { signingConfig = signingConfigs.getByName("debugConfig") }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -99,12 +92,11 @@ dependencies {
   implementation(libs.firebase.ai)
   implementation(libs.firebase.firestore)
 
-  // Uncomment ALL FOUR of the following dependencies together to use Firebase Auth and Google
-  // Sign-In via Credential Manager:
-  // implementation(libs.firebase.auth)
-  // implementation(libs.androidx.credentials)
-  // implementation(libs.androidx.credentials.play.services)
-  // implementation(libs.googleid)
+  // Firebase Auth and Google Sign-In via Credential Manager
+  implementation(libs.firebase.auth)
+  implementation(libs.androidx.credentials)
+  implementation(libs.androidx.credentials.play.services)
+  implementation(libs.googleid)
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
