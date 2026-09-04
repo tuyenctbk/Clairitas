@@ -21,7 +21,12 @@ data class AudioQueueItem(
 class AudioDigestManager(context: Context) : TextToSpeech.OnInitListener {
 
     private val appContext = context.applicationContext
-    private var tts: TextToSpeech? = TextToSpeech(appContext, this)
+    private var tts: TextToSpeech? = try {
+        TextToSpeech(appContext, this)
+    } catch (e: Exception) {
+        android.util.Log.w("AudioDigestManager", "Failed to initialize TextToSpeech engine: ${e.message}")
+        null
+    }
     private var isInitialized = false
 
     private val _playbackState = MutableStateFlow(PlaybackState.IDLE)

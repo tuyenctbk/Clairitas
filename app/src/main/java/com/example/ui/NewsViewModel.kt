@@ -69,7 +69,11 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val _themeMode = MutableStateFlow(
-        ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+        try {
+            ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+        } catch (e: Exception) {
+            ThemeMode.SYSTEM
+        }
     )
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
@@ -97,7 +101,11 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
     private val _selectedProcessingMode = MutableStateFlow(
-        ProcessingMode.valueOf(prefs.getString("processing_mode", ProcessingMode.SUPER_FAST.name) ?: ProcessingMode.SUPER_FAST.name)
+        try {
+            ProcessingMode.valueOf(prefs.getString("processing_mode", ProcessingMode.SUPER_FAST.name) ?: ProcessingMode.SUPER_FAST.name)
+        } catch (e: Exception) {
+            ProcessingMode.SUPER_FAST
+        }
     )
     val selectedProcessingMode: StateFlow<ProcessingMode> = _selectedProcessingMode.asStateFlow()
 

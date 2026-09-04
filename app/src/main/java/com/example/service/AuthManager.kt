@@ -20,17 +20,26 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class AuthManager private constructor(private val context: Context) {
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth? = try {
+        FirebaseAuth.getInstance()
+    } catch (e: Exception) {
+        Log.w(TAG, "FirebaseAuth initialization failed or unconfigured: ${e.message}")
+        null
+    }
 
-    private val _currentUser = MutableStateFlow<FirebaseUser?>(auth.currentUser)
+    private val _currentUser = MutableStateFlow<FirebaseUser?>(auth?.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
 
     private val _authStatusMessage = MutableStateFlow<String?>(null)
     val authStatusMessage: StateFlow<String?> = _authStatusMessage.asStateFlow()
 
     init {
-        auth.addAuthStateListener { firebaseAuth ->
-            _currentUser.value = firebaseAuth.currentUser
+        try {
+            auth?.addAuthStateListener { firebaseAuth ->
+                _currentUser.value = firebaseAuth.currentUser
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to register auth state listener: ${e.message}")
         }
     }
 
@@ -55,6 +64,12 @@ class AuthManager private constructor(private val context: Context) {
         webClientId: String = "",
         onComplete: (Boolean, String?) -> Unit
     ) {
+        val currentAuth = auth
+        if (currentAuth == null) {
+            onComplete(false, "Firebase Auth is unconfigured. Demo / Guest sign-in is available.")
+            return
+        }
+
         if (webClientId.isBlank()) {
             onComplete(false, "Please configure your Google Web Client ID in the app settings")
             return
@@ -80,10 +95,10 @@ class AuthManager private constructor(private val context: Context) {
                 val idToken = googleIdTokenCredential.idToken
 
                 val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-                auth.signInWithCredential(firebaseCredential)
+                currentAuth.signInWithCredential(firebaseCredential)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            val user = auth.currentUser
+                            val user = currentAuth.currentUser
                             _currentUser.value = user
                             _authStatusMessage.value = "Signed in as ${user?.displayName ?: user?.email}"
                             onComplete(true, "Successfully signed in as ${user?.displayName ?: user?.email}")
@@ -121,7 +136,11 @@ class AuthManager private constructor(private val context: Context) {
      * Sign out current Firebase user.
      */
     fun signOut() {
-        auth.signOut()
+        try {
+            auth?.signOut()
+        } catch (e: Exception) {
+            Log.w(TAG, "Sign out error: ${e.message}")
+        }
         _currentUser.value = null
         _authStatusMessage.value = "Signed out"
     }

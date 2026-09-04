@@ -70,7 +70,11 @@ class RadarNotificationManager(private val context: Context) {
             .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(article.id.hashCode(), notification)
+        try {
+            notificationManager.notify(article.id.hashCode(), notification)
+        } catch (e: Exception) {
+            android.util.Log.w("RadarNotification", "Could not post radar notification: ${e.message}")
+        }
     }
 
     fun sendDailyDigestNotification(topArticles: List<Article>) {
@@ -105,7 +109,11 @@ class RadarNotificationManager(private val context: Context) {
             .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(DAILY_DIGEST_NOTIFICATION_ID, notification)
+        try {
+            notificationManager.notify(DAILY_DIGEST_NOTIFICATION_ID, notification)
+        } catch (e: Exception) {
+            android.util.Log.w("RadarNotification", "Could not post daily digest notification: ${e.message}")
+        }
     }
 
     companion object {
