@@ -430,7 +430,8 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             try {
                 repository.refreshNewsFeed(
                     processingMode = _selectedProcessingMode.value,
-                    customApiKey = _customApiKey.value
+                    customApiKey = _customApiKey.value,
+                    category = _selectedCategory.value
                 )
             } catch (e: Exception) {
                 _feedError.value = e.localizedMessage ?: e.message ?: "An unexpected error occurred during refresh"

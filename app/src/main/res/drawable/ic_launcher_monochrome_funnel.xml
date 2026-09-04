@@ -1,65 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Monochrome icon for Android 13+ Themed Icons - single color, no background -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Top Inflow Noise Particles -->
     <path
         android:fillColor="#000000"
-        android:pathData="M38,22 a1.2,1.2 0 1,0 0.1,0 Z
-        M52,21 a1.2,1.2 0 1,0 0.1,0 Z
-        M68,23 a1.2,1.2 0 1,0 0.1,0 Z
-        M32,26 a1.2,1.2 0 1,0 0.1,0 Z
-        M44,26 a1.2,1.2 0 1,0 0.1,0 Z
-        M61,27 a1.2,1.2 0 1,0 0.1,0 Z
-        M77,28 a1.2,1.2 0 1,0 0.1,0 Z
-        M27,33 a1.2,1.2 0 1,0 0.1,0 Z
-        M36,33 a1.2,1.2 0 1,0 0.1,0 Z
-        M48,30 a1.2,1.2 0 1,0 0.1,0 Z
-        M56,32 a1.2,1.2 0 1,0 0.1,0 Z
-        M66,31 a1.2,1.2 0 1,0 0.1,0 Z
-        M72,34 a1.2,1.2 0 1,0 0.1,0 Z
-        M81,37 a1.2,1.2 0 1,0 0.1,0 Z
-        M30,39 a1.1,1.1 0 1,0 0.1,0 Z
-        M39,38 a1.1,1.1 0 1,0 0.1,0 Z
-        M45,38 a1.1,1.1 0 1,0 0.1,0 Z
-        M53,36 a1.1,1.1 0 1,0 0.1,0 Z
-        M60,38 a1.1,1.1 0 1,0 0.1,0 Z
-        M69,39 a1.1,1.1 0 1,0 0.1,0 Z
-        M76,40 a1.1,1.1 0 1,0 0.1,0 Z
-        M42,49 a1.1,1.1 0 1,0 0.1,0 Z
-        M50,50 a1.1,1.1 0 1,0 0.1,0 Z
-        M58,51 a1.1,1.1 0 1,0 0.1,0 Z
-        M66,50 a1.1,1.1 0 1,0 0.1,0 Z
-        M45,54 a1.1,1.1 0 1,0 0.1,0 Z
-        M52,55 a1.1,1.1 0 1,0 0.1,0 Z
-        M60,55 a1.1,1.1 0 1,0 0.1,0 Z
-        M48,59 a1.1,1.1 0 1,0 0.1,0 Z
-        M54,60 a1.1,1.1 0 1,0 0.1,0 Z
-        M60,60 a1.1,1.1 0 1,0 0.1,0 Z
-        M50,64 a1.1,1.1 0 1,0 0.1,0 Z
-        M56,65 a1.1,1.1 0 1,0 0.1,0 Z
-        M52,69 a1.1,1.1 0 1,0 0.1,0 Z
-        M56,70 a1.1,1.1 0 1,0 0.1,0 Z
-        M51,75 a1.1,1.1 0 1,0 0.1,0 Z
-        M55,76 a1.1,1.1 0 1,0 0.1,0 Z
-        M52,78.5 a1.1,1.1 0 1,0 0.1,0 Z
-        M54,80 a1.1,1.1 0 1,0 0.1,0 Z
-        M51,82 a1.1,1.1 0 1,0 0.1,0 Z
-        M55,82.5 a1.1,1.1 0 1,0 0.1,0 Z
-        M53,85 a1.1,1.1 0 1,0 0.1,0 Z" />
+        android:pathData="M38,24 a1.5,1.5 0 1,0 0.1,0 Z
+        M54,22 a1.8,1.8 0 1,0 0.1,0 Z
+        M70,25 a1.5,1.5 0 1,0 0.1,0 Z
+        M32,29 a1.4,1.4 0 1,0 0.1,0 Z
+        M46,28 a1.6,1.6 0 1,0 0.1,0 Z
+        M62,29 a1.5,1.5 0 1,0 0.1,0 Z
+        M76,30 a1.4,1.4 0 1,0 0.1,0 Z
+        M28,35 a1.3,1.3 0 1,0 0.1,0 Z
+        M40,34 a1.5,1.5 0 1,0 0.1,0 Z
+        M54,33 a1.8,1.8 0 1,0 0.1,0 Z
+        M68,34 a1.5,1.5 0 1,0 0.1,0 Z
+        M80,36 a1.3,1.3 0 1,0 0.1,0 Z" />
+
+    <!-- Funnel Precision Outline -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#000000"
         android:strokeWidth="3.2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M28,44 L80,44 C78,48 74,55 70,60 C66,66 62,70 58,78 M50,78 C46,70 42,66 38,60 C34,55 30,48 28,44 Z" />
+        android:pathData="M26,40 L82,40 C78,48 73,56 68,62 C64,67 60,72 56.5,77 L51.5,77 C48,72 44,67 40,62 C35,56 30,48 26,40 Z" />
+
+    <!-- Filtration Grid Lines inside Funnel -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#000000"
-        android:strokeWidth="3.5"
+        android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M26,91 L82,91" />
+        android:pathData="M34,48 L74,48 M41,56 L67,56 M47,64 L61,64 M51,71 L57,71" />
+
+    <!-- Pure Signal Jet Streams Leaving Funnel -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:pathData="M54,78 L54,83" />
+
+    <!-- Pure High-SNR Laser Signal Bar Base -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="3.8"
+        android:strokeLineCap="round"
+        android:pathData="M30,88 L78,88" />
+
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,88 a2.5,2.5 0 1,0 0.1,0 Z" />
 </vector>

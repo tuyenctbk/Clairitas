@@ -26,6 +26,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocalCafe
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -111,6 +115,7 @@ fun HomeScreen(
         "RealEstate" to "Real Estate"
     )
 
+    val context = LocalContext.current
     var isSearchFocused by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -201,6 +206,25 @@ fun HomeScreen(
                         }
                     },
                     actions = {
+                        IconButton(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/tuyenphamvn"))
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {}
+                            },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("top_bar_coffee_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocalCafe,
+                                contentDescription = "Buy Me a Coffee",
+                                tint = Color(0xFFE65100),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                         if (onPlayMorningDigest != null) {
                             IconButton(
                                 onClick = onPlayMorningDigest,

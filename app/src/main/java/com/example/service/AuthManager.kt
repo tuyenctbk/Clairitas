@@ -52,9 +52,13 @@ class AuthManager private constructor(private val context: Context) {
      */
     suspend fun signInWithGoogle(
         context: Context,
-        webClientId: String = "100000000000-example.apps.googleusercontent.com",
+        webClientId: String = "",
         onComplete: (Boolean, String?) -> Unit
     ) {
+        if (webClientId.isBlank()) {
+            onComplete(false, "Please configure your Google Web Client ID in the app settings")
+            return
+        }
         val credentialManager = CredentialManager.create(context)
 
         val googleIdOption = GetGoogleIdOption.Builder()

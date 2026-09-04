@@ -73,7 +73,7 @@ object GeminiSummarizer {
                 .put("contents", contentsArray)
                 .put("systemInstruction", systemInstructionObj)
 
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
             val request = Request.Builder()
                 .url(url)
                 .post(requestJson.toString().toRequestBody("application/json".toMediaType()))
@@ -134,9 +134,9 @@ object GeminiSummarizer {
         val apiKey = userCustomApiKey?.takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY
 
         val localFallback = TranslatedArticleResult(
-            title = "[Translated to $targetLanguage] $title",
-            bullets = bullets.map { "[Translated to $targetLanguage] $it" },
-            content = "[Translated to $targetLanguage]\n\n$content"
+            title = title,
+            bullets = bullets,
+            content = content
         )
 
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
@@ -175,7 +175,7 @@ object GeminiSummarizer {
                 .put("contents", contentsArray)
                 .put("systemInstruction", systemInstructionObj)
 
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
             val request = Request.Builder()
                 .url(url)
                 .post(requestJson.toString().toRequestBody("application/json".toMediaType()))

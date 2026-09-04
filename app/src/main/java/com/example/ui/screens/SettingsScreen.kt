@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.ui.res.stringResource
 import com.example.data.model.Article
+import com.example.ui.components.SupportDonationCard
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -273,6 +274,11 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Support Developer / Buy Me a Coffee Card
+        SupportDonationCard()
 
         Spacer(modifier = Modifier.height(18.dp))
 
