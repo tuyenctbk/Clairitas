@@ -18,13 +18,25 @@ android {
     applicationId = "com.soloprono.sift"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   signingConfigs {
+    create("release") {
+      val localProps = Properties()
+      val localPropsFile = rootProject.file("local.properties")
+      if (localPropsFile.exists()) {
+        localPropsFile.inputStream().use { stream -> localProps.load(stream) }
+      }
+      val storeFileName = localProps.getProperty("RELEASE_STORE_FILE") ?: "common_release_key.jks"
+      storeFile = rootProject.file(storeFileName)
+      storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD") ?: "dpadhero123"
+      keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS") ?: "dpad_hero_alias"
+      keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD") ?: "dpadhero123"
+    }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
       storePassword = "android"
@@ -38,6 +50,7 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      signingConfig = signingConfigs.getByName("release")
     }
     debug { signingConfig = signingConfigs.getByName("debugConfig") }
   }
