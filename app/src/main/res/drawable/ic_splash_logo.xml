@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="128dp"
+    android:height="128dp"
+    android:viewportWidth="128"
+    android:viewportHeight="128">
+
+    <!-- Shield Emblem Background -->
+    <path
+        android:pathData="M64,16 L108,36 C108,82 64,110 64,110 C64,110 20,82 20,36 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="90"
+                android:endColor="#4338CA"
+                android:startColor="#6366F1"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Shield Border Accent -->
+    <path
+        android:pathData="M64,16 L108,36 C108,82 64,110 64,110 C64,110 20,82 20,36 Z"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="2.5" />
+
+    <!-- Anti-Clickbait Funnel Filter Glyph -->
+    <path
+        android:pathData="M40,42 L88,42 L72,66 L72,86 L56,86 L56,66 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Pure Signal Bars -->
+    <path
+        android:pathData="M48,50 L80,50"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M52,58 L76,58"
+        android:strokeColor="#6366F1"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Signal Pulse Dot -->
+    <path
+        android:pathData="M64,76m-3.5,0a3.5,3.5 0 1,1 7,0a3.5,3.5 0 1,1 -7,0"
+        android:fillColor="#38BDF8" />
+
+</vector>

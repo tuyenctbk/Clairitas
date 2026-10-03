@@ -54,7 +54,6 @@
     <string name="theme_setting_light">Light Theme</string>
     <string name="theme_setting_dark">Dark Theme</string>
     <string name="theme_setting_amoled">Deep Black (OLED)</string>
-    <string name="empty_activity_title">No Activity Logs Collected</string>
-    <string name="empty_sos_title">SOS Emergency Monitor Clear</string>
-    <string name="empty_geofence_title">Geo-Fence Radar Inactive</string>
+    <string name="radar_traps_tab">Keyword Traps</string>
+    <string name="radar_analysis_tab">Noise &amp; Bias Radar</string>
 </resources>

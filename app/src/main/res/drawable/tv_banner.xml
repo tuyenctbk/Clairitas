@@ -1,0 +1,86 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <!-- Deep Cyber Gradient Background -->
+    <path
+        android:pathData="M0,0h320v180h-320z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="135"
+                android:endColor="#0F172A"
+                android:startColor="#1E1B4B"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Subtle Geometric Signal Grid Arc 1 -->
+    <path
+        android:pathData="M -20,180 Q 80,40 220,180"
+        android:strokeAlpha="0.25"
+        android:strokeColor="#6366F1"
+        android:strokeWidth="1.5" />
+
+    <!-- Subtle Geometric Signal Grid Arc 2 -->
+    <path
+        android:pathData="M 40,180 Q 140,20 280,180"
+        android:strokeAlpha="0.35"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="1.5" />
+
+    <!-- Outer Glow for Shield Emblem -->
+    <path
+        android:pathData="M160,28 L196,44 C196,78 160,98 160,98 C160,98 124,78 124,44 Z"
+        android:strokeAlpha="0.4"
+        android:strokeColor="#818CF8"
+        android:strokeWidth="4" />
+
+    <!-- Main Shield Emblem Fill -->
+    <path
+        android:pathData="M160,30 L194,45 C194,76 160,96 160,96 C160,96 126,76 126,45 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="90"
+                android:endColor="#4338CA"
+                android:startColor="#6366F1"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Signal Waves inside Shield (Funnel & Waves) -->
+    <path
+        android:pathData="M142,50 L178,50 L166,66 L166,80 L154,80 L154,66 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.95" />
+
+    <path
+        android:pathData="M146,55 L174,55"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Accent Signal Flare Dot -->
+    <path
+        android:pathData="M160,73m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0"
+        android:fillColor="#38BDF8" />
+
+    <!-- Text Base Accent Glow Bar -->
+    <path
+        android:pathData="M120,154 L200,154"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- Wordmark Indicator Dots -->
+    <path
+        android:pathData="M105,154m-2,0a2,2 0 1,1 4,0a2,2 0 1,1 -4,0"
+        android:fillColor="#818CF8" />
+
+    <path
+        android:pathData="M215,154m-2,0a2,2 0 1,1 4,0a2,2 0 1,1 -4,0"
+        android:fillColor="#818CF8" />
+
+</vector>
