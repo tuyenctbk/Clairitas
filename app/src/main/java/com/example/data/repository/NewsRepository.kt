@@ -208,12 +208,7 @@ class NewsRepository(
         val rawFeed = if (liveArticles.isNotEmpty()) {
             liveArticles
         } else {
-            val dbArticles = articleDao.getAllArticles().first().map { it.toArticle() }
-            if (dbArticles.isNotEmpty()) {
-                dbArticles
-            } else {
-                getOfflineJournalismFallback()
-            }
+            articleDao.getAllArticles().first().map { it.toArticle() }
         }
 
         val processedEntities = mutableListOf<ArticleEntity>()
@@ -311,115 +306,6 @@ class NewsRepository(
                 articleDao.insertArticle(ArticleEntity.fromArticle(updated))
             }
         }
-    }
-
-    /**
-     * Offline journalism fallback when no network connection is available on a completely fresh install.
-     */
-    private fun getOfflineJournalismFallback(): List<Article> {
-        val now = System.currentTimeMillis()
-        return listOf(
-            Article(
-                id = "live_art_101",
-                title = "Global Central Banks Coordinate Liquidity Frameworks Amid Disinflation",
-                originalTitle = "Central banks adjust monetary stance with robust financial liquidity",
-                publisher = "CNBC Markets",
-                category = "Markets",
-                summaryBullets = listOf(
-                    "Benchmark policy rates stabilized as core inflation trends toward targets.",
-                    "Interbank liquidity maintained with balanced global capital inflows.",
-                    "Sovereign debt markets respond positively to forward guidance."
-                ),
-                fullContent = "International central banking committees published their coordinated monetary policy review. Policy benchmarks remain calibrated to anchor medium-term inflation expectations while supporting stable employment and cross-border trade settlements.",
-                sourceUrl = "https://www.cnbc.com/markets/",
-                imageUrl = "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80",
-                publishedAt = now - 1000 * 60 * 15,
-                snrScore = 0.92f,
-                biasCategory = "Factual Data",
-                timeEstimateMinutes = 2,
-                processingModeUsed = "TextRank"
-            ),
-            Article(
-                id = "live_art_102",
-                title = "Enterprise AI and Cloud Infrastructure Expansion Drives Technology Sector",
-                originalTitle = "Tech enterprise reports revenue growth driven by AI and Cloud services",
-                publisher = "TechCrunch",
-                category = "Tech",
-                summaryBullets = listOf(
-                    "Global enterprise IT services expand with heavy demand for inference hardware.",
-                    "Digital infrastructure contracts and cloud modernization accelerate.",
-                    "Semiconductor packaging partnerships expand to meet compute demand."
-                ),
-                fullContent = "Major technology corporations announced robust quarterly results driven by accelerated enterprise adoption of cloud computing and generative AI model deployment. International IT service revenues expanded significantly year-over-year.",
-                sourceUrl = "https://techcrunch.com",
-                imageUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-                publishedAt = now - 1000 * 60 * 45,
-                snrScore = 0.88f,
-                biasCategory = "Factual Data",
-                timeEstimateMinutes = 3,
-                processingModeUsed = "TextRank"
-            ),
-            Article(
-                id = "live_art_103",
-                title = "Metropolitan Housing Inventory Stabilizes with Balanced Buyer Demand",
-                originalTitle = "Urban residential market supply increases with steady absorption",
-                publisher = "HousingWire",
-                category = "RealEstate",
-                summaryBullets = listOf(
-                    "Residential market welcomes newly launched units across major metros.",
-                    "Mortgage rates stabilize, supporting buyer transaction volume.",
-                    "Absorption rates remain consistent across multifamily developments."
-                ),
-                fullContent = "Real estate market researchers highlight ongoing stabilization in residential housing supply. Urban centers noted increased transaction closures as favorable financing options and developer incentives entered the market.",
-                sourceUrl = "https://www.housingwire.com",
-                imageUrl = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-                publishedAt = now - 1000 * 60 * 120,
-                snrScore = 0.85f,
-                biasCategory = "Market Analysis",
-                timeEstimateMinutes = 3,
-                processingModeUsed = "TextRank"
-            ),
-            Article(
-                id = "live_art_104",
-                title = "Scientific Consortia Unveil Advances in Quantum Coherence and Error Mitigation",
-                originalTitle = "Quantum computing research achieves fidelity milestones in scalable architectures",
-                publisher = "ScienceDaily",
-                category = "Science",
-                summaryBullets = listOf(
-                    "Error-mitigated quantum circuits exceed target fidelity thresholds.",
-                    "Topological qubit protection demonstrates resilience against thermal noise.",
-                    "Multi-institutional research opens pathways for material science simulations."
-                ),
-                fullContent = "A global network of physics and computer science laboratories announced major progress in quantum error mitigation. Using novel dynamic decoupling techniques, research teams sustained coherence across multi-qubit systems.",
-                sourceUrl = "https://www.sciencedaily.com",
-                imageUrl = "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80",
-                publishedAt = now - 1000 * 60 * 240,
-                snrScore = 0.94f,
-                biasCategory = "Factual Data",
-                timeEstimateMinutes = 3,
-                processingModeUsed = "TextRank"
-            ),
-            Article(
-                id = "live_art_105",
-                title = "International Maritime Council Advances Clean Fuel and Corridor Standards",
-                originalTitle = "Global shipping routes transition to lower-emission propulsion frameworks",
-                publisher = "BBC World",
-                category = "World",
-                summaryBullets = listOf(
-                    "Major trade corridors adopt low-carbon methanol and dual-fuel vessels.",
-                    "Port bunkering infrastructure investments accelerate in Europe and Asia.",
-                    "Decarbonization benchmarks align with international maritime standards."
-                ),
-                fullContent = "The International Maritime Organization published updated operational guidelines for alternative maritime fuels. Corridors connecting European and Asian ports reported steady progress in scaling green infrastructure.",
-                sourceUrl = "https://www.bbc.com/news/world",
-                imageUrl = "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=800&q=80",
-                publishedAt = now - 1000 * 60 * 360,
-                snrScore = 0.89f,
-                biasCategory = "Factual Data",
-                timeEstimateMinutes = 3,
-                processingModeUsed = "TextRank"
-            )
-        )
     }
 
     suspend fun preCacheBookmarkedArticles(): Int = withContext(Dispatchers.IO) {

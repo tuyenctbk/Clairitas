@@ -60,10 +60,6 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun signInAsGuest(displayName: String = "Demo User", email: String = "user@siftnews.ai") {
-        authManager.signInAsGuest(displayName, email)
-    }
-
     fun signOut() {
         authManager.signOut()
     }
@@ -113,7 +109,7 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     private val _searchHistory = MutableStateFlow<List<String>>(
-        prefs.getStringSet("search_history", setOf("AI", "Tech", "Science", "Inflation", "Quantum"))?.toList() ?: listOf("AI", "Tech", "Science", "Inflation", "Quantum")
+        prefs.getStringSet("search_history", emptySet())?.toList() ?: emptyList()
     )
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
 

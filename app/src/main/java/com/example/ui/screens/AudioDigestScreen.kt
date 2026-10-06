@@ -34,6 +34,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,8 +59,27 @@ fun AudioDigestScreen(
     onPlayArticle: (Article) -> Unit,
     onPlayPauseToggle: () -> Unit,
     onSpeedChange: (Float) -> Unit,
+    onTestNotification: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showPermissionGuideDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var hasNotificationPermission by remember { androidx.compose.runtime.mutableStateOf(com.example.util.PermissionHelper.hasNotificationPermission(context)) }
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        hasNotificationPermission = com.example.util.PermissionHelper.hasNotificationPermission(context)
+    }
+
+    if (showPermissionGuideDialog) {
+        com.example.ui.components.PermissionApproveGuideDialog(
+            onDismiss = {
+                showPermissionGuideDialog = false
+                hasNotificationPermission = com.example.util.PermissionHelper.hasNotificationPermission(context)
+            },
+            onTestNotification = onTestNotification
+        )
+    }
+
     val queueArticles = articles.take(5)
 
     Box(
@@ -171,7 +194,37 @@ fun AudioDigestScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (hasNotificationPermission) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFF59E0B).copy(alpha = 0.2f),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { showPermissionGuideDialog = true }
+                        .testTag("audio_digest_permission_guide_chip")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (hasNotificationPermission) Icons.Default.Radio else Icons.Default.Headphones,
+                            contentDescription = null,
+                            tint = if (hasNotificationPermission) Color(0xFF047857) else Color(0xFFB45309),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (hasNotificationPermission) "Morning Alert Delivery Active ✓" else "Enable Morning Alert Notification Guide",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (hasNotificationPermission) Color(0xFF047857) else Color(0xFFB45309)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // Speed Switcher Pill
                 Row(

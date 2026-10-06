@@ -97,7 +97,6 @@ fun SettingsScreen(
     readArticles: List<Article> = emptyList(),
     currentUser: com.google.firebase.auth.FirebaseUser? = null,
     onSignInGoogle: () -> Unit = {},
-    onSignInGuest: () -> Unit = {},
     onSignOut: () -> Unit = {},
     onArticleClick: (Article) -> Unit = {},
     onClearReadingHistory: () -> Unit = {},
@@ -123,6 +122,7 @@ fun SettingsScreen(
     var keySavedMsg by remember { mutableStateOf(false) }
     var devTapCount by remember { androidx.compose.runtime.mutableIntStateOf(0) }
     var devOptionsUnlocked by remember { mutableStateOf(false) }
+    var showPermissionGuideDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -130,6 +130,12 @@ fun SettingsScreen(
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.TopCenter
     ) {
+        if (showPermissionGuideDialog) {
+            com.example.ui.components.PermissionApproveGuideDialog(
+                onDismiss = { showPermissionGuideDialog = false },
+                onTestNotification = onSendTestDailyDigest
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -251,25 +257,13 @@ fun SettingsScreen(
                         }
                     }
                 } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Button(
+                        onClick = onSignInGoogle,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("google_sign_in_button")
                     ) {
-                        Button(
-                            onClick = onSignInGoogle,
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("google_sign_in_button")
-                        ) {
-                            Text("Sign in with Google", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        OutlinedButton(
-                            onClick = onSignInGuest,
-                            modifier = Modifier.testTag("guest_sign_in_button")
-                        ) {
-                            Text("Demo Sign In", fontSize = 12.sp)
-                        }
+                        Text("Sign in with Google", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -651,6 +645,15 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Notification & Permission Approval Guide Card
+        com.example.ui.components.PermissionApproveGuideCard(
+            onOpenFullGuide = { showPermissionGuideDialog = true },
+            onTestNotification = onSendTestDailyDigest,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

@@ -126,13 +126,6 @@ class AuthManager private constructor(private val context: Context) {
     }
 
     /**
-     * Quick Demo/Guest Login for instant testing without requiring active Google Play Services setup in emulator.
-     */
-    fun signInAsGuest(displayName: String = "Demo User", email: String = "user@siftnews.ai") {
-        _authStatusMessage.value = "Signed in as $displayName ($email)"
-    }
-
-    /**
      * Sign out current Firebase user.
      */
     fun signOut() {

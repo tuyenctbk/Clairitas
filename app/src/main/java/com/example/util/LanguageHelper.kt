@@ -13,7 +13,7 @@ object LanguageHelper {
             if (languageCode.contains("-")) {
                 val parts = languageCode.split("-")
                 if (parts.size == 2 && parts[1].length == 2) {
-                    Locale(parts[0], parts[1])
+                    Locale.Builder().setLanguage(parts[0]).setRegion(parts[1]).build()
                 } else {
                     Locale.forLanguageTag(languageCode)
                 }

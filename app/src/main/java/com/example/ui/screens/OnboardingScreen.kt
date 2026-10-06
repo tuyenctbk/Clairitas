@@ -68,6 +68,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -95,7 +97,14 @@ fun OnboardingScreen(
     var apiKeyInput by remember { mutableStateOf("") }
     var selectedCountry by remember { mutableStateOf("Global / International (English)") }
     var onboardingLanguageCode by remember { mutableStateOf("en") }
+    var showPermissionGuideDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    if (showPermissionGuideDialog) {
+        com.example.ui.components.PermissionApproveGuideDialog(
+            onDismiss = { showPermissionGuideDialog = false }
+        )
+    }
 
     val pages = listOf(
         OnboardingPageData(
@@ -222,7 +231,8 @@ fun OnboardingScreen(
                                     onLanguageCodeChanged = { lang ->
                                         onboardingLanguageCode = lang
                                         com.example.util.LanguageHelper.setAppLanguage(context, lang)
-                                    }
+                                    },
+                                    onOpenPermissionGuide = { showPermissionGuideDialog = true }
                                 )
                             }
                         }
@@ -273,7 +283,8 @@ fun OnboardingScreen(
                                     onLanguageCodeChanged = { lang ->
                                         onboardingLanguageCode = lang
                                         com.example.util.LanguageHelper.setAppLanguage(context, lang)
-                                    }
+                                    },
+                                    onOpenPermissionGuide = { showPermissionGuideDialog = true }
                                 )
                             }
                         }
@@ -323,7 +334,8 @@ fun OnboardingDetails(
     selectedCountry: String,
     onCountrySelected: (String) -> Unit,
     onboardingLanguageCode: String,
-    onLanguageCodeChanged: (String) -> Unit
+    onLanguageCodeChanged: (String) -> Unit,
+    onOpenPermissionGuide: () -> Unit = {}
 ) {
     Column {
         // Upper Badge Indicator
@@ -373,6 +385,14 @@ fun OnboardingDetails(
         )
 
         Spacer(modifier = Modifier.height(18.dp))
+
+        // Render Permission Approval Guide on slide 1 (index 1: Audio Digest & Keyword Radar)
+        if (currentPage == 1) {
+            com.example.ui.components.PermissionApproveGuideCard(
+                onOpenFullGuide = onOpenPermissionGuide,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
 
         // Render Country Selection on slide 2 (index 2)
         if (currentPage == 2) {
@@ -675,7 +695,7 @@ fun OnboardingNavigationRow(
                 .testTag("onboarding_next_btn")
         ) {
             Text(
-                text = if (currentPage == totalPages - 1) "Start" else "Next",
+                text = if (currentPage == totalPages - 1) stringResource(R.string.get_started) else "Next",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )

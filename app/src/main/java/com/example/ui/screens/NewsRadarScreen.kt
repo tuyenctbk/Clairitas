@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Security
@@ -74,10 +76,28 @@ fun NewsRadarScreen(
     onArticleClick: (Article) -> Unit,
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
+    onTestAlert: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var newKeywordInput by remember { mutableStateOf("") }
     var selectedRadarTab by remember { mutableIntStateOf(0) }
+    var showPermissionGuideDialog by remember { mutableStateOf(false) }
+    var hasNotificationPermission by remember { mutableStateOf(com.example.util.PermissionHelper.hasNotificationPermission(context)) }
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        hasNotificationPermission = com.example.util.PermissionHelper.hasNotificationPermission(context)
+    }
+
+    if (showPermissionGuideDialog) {
+        com.example.ui.components.PermissionApproveGuideDialog(
+            onDismiss = {
+                showPermissionGuideDialog = false
+                hasNotificationPermission = com.example.util.PermissionHelper.hasNotificationPermission(context)
+            },
+            onTestNotification = onTestAlert
+        )
+    }
 
     val matchedArticles = remember(allArticles, keywordTraps) {
         val activeKeywords = keywordTraps.filter { it.isActive }.map { it.keyword.lowercase() }.toSet()
@@ -106,32 +126,63 @@ fun NewsRadarScreen(
             // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFDC2626).copy(alpha = 0.15f),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Radar,
-                        contentDescription = "News Radar",
-                        tint = Color(0xFFDC2626),
-                        modifier = Modifier.padding(8.dp).size(24.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFFDC2626).copy(alpha = 0.15f),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Radar,
+                            contentDescription = "News Radar",
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.padding(8.dp).size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "News Radar Engine",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Keyword traps & noise-filtering analytics",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(
-                        text = "News Radar Engine",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Keyword traps & noise-filtering analytics",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (hasNotificationPermission) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFF59E0B).copy(alpha = 0.15f),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { showPermissionGuideDialog = true }
+                        .testTag("radar_permission_guide_btn")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (hasNotificationPermission) Icons.Default.NotificationsActive else Icons.Default.Notifications,
+                            contentDescription = "Permission Guide",
+                            tint = if (hasNotificationPermission) Color(0xFF10B981) else Color(0xFFF59E0B),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (hasNotificationPermission) "Alerts Active" else "Perms Guide",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (hasNotificationPermission) Color(0xFF047857) else Color(0xFFB45309)
+                        )
+                    }
                 }
             }
 
@@ -164,6 +215,13 @@ fun NewsRadarScreen(
                 )
             } else {
                 // Tab 0: Keyword Traps & Live Monitoring
+                if (!hasNotificationPermission) {
+                    com.example.ui.components.PermissionApproveBanner(
+                        onReviewGuide = { showPermissionGuideDialog = true },
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+
                 // Add Keyword Trap Input Card
                 Card(
                     shape = RoundedCornerShape(12.dp),

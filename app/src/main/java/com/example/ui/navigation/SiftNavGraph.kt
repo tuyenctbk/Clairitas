@@ -190,7 +190,8 @@ fun SiftNavGraph(
                             navController.navigate(Screen.ArticleDetail.createRoute(article.id))
                         },
                         onBookmarkToggle = { article -> viewModel.toggleBookmark(article.id, article.isBookmarked) },
-                        onPlayAudio = { article -> viewModel.playArticleAudio(article) }
+                        onPlayAudio = { article -> viewModel.playArticleAudio(article) },
+                        onTestAlert = { viewModel.sendDailyDigestPushNotification() }
                     )
                 }
             }
@@ -214,7 +215,8 @@ fun SiftNavGraph(
                                 viewModel.audioManager.resume()
                             }
                         },
-                        onSpeedChange = { speed -> viewModel.audioManager.setSpeed(speed) }
+                        onSpeedChange = { speed -> viewModel.audioManager.setSpeed(speed) },
+                        onTestNotification = { viewModel.sendDailyDigestPushNotification() }
                     )
                 }
             }
@@ -272,7 +274,6 @@ fun SiftNavGraph(
                         readArticles = readArticles,
                         currentUser = currentUser,
                         onSignInGoogle = { viewModel.signInWithGoogle(context) { _, _ -> } },
-                        onSignInGuest = { viewModel.signInAsGuest() },
                         onSignOut = { viewModel.signOut() },
                         onArticleClick = { article ->
                             viewModel.markAsRead(article.id)

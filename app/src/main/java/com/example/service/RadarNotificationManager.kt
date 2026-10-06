@@ -57,8 +57,13 @@ class RadarNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        if (!com.example.util.PermissionHelper.hasNotificationPermission(context)) {
+            android.util.Log.w("RadarNotification", "Notification permission not granted. Skipping radar notification.")
+            return
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(com.example.R.drawable.ic_notification_sift)
             .setContentTitle("🎯 Sift Radar: $matchedKeyword")
             .setContentText(article.title)
             .setStyle(
@@ -92,12 +97,17 @@ class RadarNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        if (!com.example.util.PermissionHelper.hasNotificationPermission(context)) {
+            android.util.Log.w("RadarNotification", "Notification permission not granted. Skipping daily digest notification.")
+            return
+        }
+
         val firstArticle = topArticles.first()
         val headlineCount = topArticles.size
         val digestText = topArticles.take(3).joinToString("\n• ") { it.title }
 
         val notification = NotificationCompat.Builder(context, DIGEST_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_today)
+            .setSmallIcon(com.example.R.drawable.ic_notification_sift)
             .setContentTitle("🌅 Your Morning Daily Digest ($headlineCount Top Stories)")
             .setContentText(firstArticle.title)
             .setStyle(

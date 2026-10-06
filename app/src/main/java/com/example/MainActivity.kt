@@ -75,6 +75,9 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: NewsViewModel by viewModels()
 
+    private val initialArticleId = androidx.compose.runtime.mutableStateOf<String?>(null)
+    private val initialOpenDigest = androidx.compose.runtime.mutableStateOf(false)
+
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("sift_prefs", android.content.Context.MODE_PRIVATE)
         val langCode = prefs.getString("app_language", "en") ?: "en"
@@ -82,9 +85,25 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(wrappedContext)
     }
 
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: android.content.Intent?) {
+        intent?.getStringExtra("ARTICLE_ID")?.let { id ->
+            if (id.isNotBlank()) initialArticleId.value = id
+        }
+        if (intent?.getBooleanExtra("SHOW_DAILY_DIGEST", false) == true) {
+            initialOpenDigest.value = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleNotificationIntent(intent)
 
         // Apply saved language locale on startup
         com.example.util.LanguageHelper.setAppLanguage(this, viewModel.appLanguage.value)
@@ -108,7 +127,15 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 } else {
-                    SiftApp(viewModel = viewModel)
+                    SiftApp(
+                        viewModel = viewModel,
+                        deepLinkArticleId = initialArticleId.value,
+                        openDigestOnLaunch = initialOpenDigest.value,
+                        onClearDeepLinks = {
+                            initialArticleId.value = null
+                            initialOpenDigest.value = false
+                        }
+                    )
                 }
             }
         }
@@ -116,7 +143,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SiftApp(viewModel: NewsViewModel) {
+fun SiftApp(
+    viewModel: NewsViewModel,
+    deepLinkArticleId: String? = null,
+    openDigestOnLaunch: Boolean = false,
+    onClearDeepLinks: () -> Unit = {}
+) {
     val context = LocalContext.current
     var currentTab by remember { mutableStateOf(NavTab.HOME) }
     var selectedArticleForDetail by remember { mutableStateOf<Article?>(null) }
@@ -164,6 +196,18 @@ fun SiftApp(viewModel: NewsViewModel) {
     val isTablet = LocalConfiguration.current.screenWidthDp >= 720
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    androidx.compose.runtime.LaunchedEffect(deepLinkArticleId, openDigestOnLaunch) {
+        if (!deepLinkArticleId.isNullOrBlank()) {
+            viewModel.markAsRead(deepLinkArticleId)
+            navController.navigate(Screen.ArticleDetail.createRoute(deepLinkArticleId))
+            onClearDeepLinks()
+        } else if (openDigestOnLaunch) {
+            currentTab = NavTab.AUDIO
+            navController.navigate(Screen.Audio.route)
+            onClearDeepLinks()
+        }
+    }
 
     if (showRatingPrompt) {
         SmartRatingDialog(

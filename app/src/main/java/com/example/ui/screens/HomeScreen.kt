@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.LocalCafe
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -163,7 +165,7 @@ fun HomeScreen(
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = onSearchQueryChanged,
-                                placeholder = { Text("Search keywords, topics...", fontSize = 11.sp) },
+                                placeholder = { Text(stringResource(R.string.search_hint), fontSize = 11.sp) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Search,
@@ -359,7 +361,7 @@ fun HomeScreen(
                         }
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Clear",
+                            text = stringResource(R.string.clear_button),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error,
@@ -409,7 +411,7 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Clear Filter",
+                                text = stringResource(R.string.clear_filter),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Bold,
@@ -448,7 +450,7 @@ fun HomeScreen(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "Daily Intelligence Briefing",
+                                            text = stringResource(R.string.daily_briefing_title),
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
@@ -469,13 +471,13 @@ fun HomeScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                                    contentDescription = "Listen",
+                                                    contentDescription = stringResource(R.string.listen_action),
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
                                                 Text(
-                                                    text = "Listen",
+                                                    text = stringResource(R.string.listen_action),
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onPrimary
@@ -511,7 +513,7 @@ fun HomeScreen(
                                 onClearError()
                                 onRefresh()
                             },
-                            actionButtonText = "Retry Feed Scan"
+                            actionButtonText = stringResource(R.string.retry_action)
                         )
                     } else if (articles.isEmpty()) {
                         if (searchQuery.isNotBlank()) {

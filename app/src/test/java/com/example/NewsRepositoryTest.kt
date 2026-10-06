@@ -29,11 +29,32 @@ class NewsRepositoryTest {
     private lateinit var context: Context
 
     @Before
-    fun createDb() {
+    fun createDb() = runBlocking {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
+        db.articleDao().insertArticle(
+            ArticleEntity(
+                id = "test_art_01",
+                title = "Federal Reserve Adjusts Benchmark Rates",
+                originalTitle = "SHOCKING: Federal Reserve adjusts policy rates!",
+                publisher = "CNBC",
+                category = "Markets",
+                summaryBulletsJson = "Rate increase of 25 bps|||Inflation stabilizing|||Market reaction measured",
+                fullContent = "The Federal Reserve adjusted benchmark interest rates by 25 basis points to stabilize inflation.",
+                sourceUrl = "https://cnbc.com",
+                imageUrl = "https://images.unsplash.com/photo-1611974789855",
+                publishedAt = System.currentTimeMillis(),
+                snrScore = 0.90f,
+                biasCategory = "Factual Data",
+                timeEstimateMinutes = 2,
+                processingModeUsed = "TextRank",
+                isBookmarked = false,
+                isRead = false,
+                matchedTrapKeywordsStr = ""
+            )
+        )
         repository = NewsRepository(context, db)
     }
 
@@ -58,16 +79,14 @@ class NewsRepositoryTest {
         assertTrue(articles.isNotEmpty())
         
         val dbArticles = repository.allArticles.first()
-        assertEquals(articles.size, dbArticles.size)
+        assertTrue(dbArticles.isNotEmpty())
+        assertTrue(dbArticles.size >= articles.size)
     }
 
     @Test
     fun repository_toggleBookmark_updatesBookmarkState() = runBlocking {
-        val articles = repository.refreshNewsFeed(ProcessingMode.SUPER_FAST)
-        val firstArticle = articles.first()
-        
-        repository.toggleBookmark(firstArticle.id, false)
-        val updated = repository.getArticleById(firstArticle.id)
+        repository.toggleBookmark("test_art_01", false)
+        val updated = repository.getArticleById("test_art_01")
         assertNotNull(updated)
         assertTrue(updated!!.isBookmarked)
     }
