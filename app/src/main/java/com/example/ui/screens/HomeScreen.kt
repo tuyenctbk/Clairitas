@@ -107,14 +107,14 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
-        "ALL" to "All",
-        "Tech" to "Technology",
-        "Science" to "Science",
-        "Global" to "World",
-        "Business" to "Business",
-        "Markets" to "Markets",
-        "AI" to "AI",
-        "RealEstate" to "Real Estate"
+        "ALL" to stringResource(R.string.category_all),
+        "Tech" to stringResource(R.string.category_tech),
+        "Science" to stringResource(R.string.category_science),
+        "World" to stringResource(R.string.category_global),
+        "Business" to stringResource(R.string.category_business),
+        "Markets" to stringResource(R.string.category_markets),
+        "AI" to stringResource(R.string.category_ai),
+        "RealEstate" to stringResource(R.string.category_real_estate)
     )
 
     val context = LocalContext.current
@@ -293,21 +293,35 @@ fun HomeScreen(
                     }
 
                     items(categories) { (code, label) ->
-                        val selected = selectedCategoryTags.contains(code) || (code == "ALL" && (selectedCategoryTags.contains("ALL") || selectedCategoryTags.isEmpty()))
+                        val isAllSelected = selectedCategory.equals("ALL", ignoreCase = true) ||
+                                selectedCategoryTags.isEmpty() ||
+                                (selectedCategoryTags.size == 1 && selectedCategoryTags.any { it.equals("ALL", ignoreCase = true) })
+
+                        val selected = if (code.equals("ALL", ignoreCase = true)) {
+                            isAllSelected
+                        } else {
+                            !isAllSelected && (selectedCategory.equals(code, ignoreCase = true) || selectedCategoryTags.any { it.equals(code, ignoreCase = true) })
+                        }
+
                         FilterChip(
                             selected = selected,
                             onClick = {
-                                onToggleCategoryTag(code)
                                 onCategoryChanged(code)
                             },
-                            label = { Text(text = label, fontSize = 10.sp) },
+                            label = {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
                             shape = RoundedCornerShape(12.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
                             modifier = Modifier
-                                .height(28.dp)
+                                .height(32.dp)
                                 .testTag("category_chip_$code")
                         )
                     }
@@ -578,11 +592,14 @@ fun HomeScreen(
                                             )
                                         }
                                     },
-                                    modifier = Modifier.testTag("swipe_dismiss_${article.id}")
+                                    modifier = Modifier
+                                        .animateItem()
+                                        .testTag("swipe_dismiss_${article.id}")
                                 ) {
                                     ArticleCard(
                                         article = article,
                                         onArticleClick = onArticleClick,
+                                        onCategoryClick = onCategoryChanged,
                                         onBookmarkToggle = { onBookmarkToggle(it) },
                                         onPlayAudio = { onPlayAudio(it) }
                                     )

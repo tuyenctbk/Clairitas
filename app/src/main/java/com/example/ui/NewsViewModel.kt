@@ -248,7 +248,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         // Multi-tag Category Filter
         if (!categoryTags.contains("ALL") && categoryTags.isNotEmpty()) {
             list = list.filter { article ->
-                categoryTags.any { tag -> article.category.equals(tag, ignoreCase = true) }
+                categoryTags.any { tag -> matchesCategory(article, tag) }
             }
         }
 
@@ -347,21 +347,72 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         _selectedTimeBudget.value = budget
     }
 
-    fun setCategory(category: String) {
-        toggleCategoryTag(category)
+    fun normalizeCategory(raw: String): String {
+        val trimmed = raw.trim()
+        val lower = trimmed.lowercase()
+        return when {
+            lower == "all" || lower.isBlank() -> "ALL"
+            lower == "tech" || lower == "technology" -> "Tech"
+            lower == "world" || lower == "global" -> "World"
+            lower == "realestate" || lower == "real estate" -> "RealEstate"
+            lower == "ai" || lower.contains("artificial intelligence") -> "AI"
+            lower == "science" -> "Science"
+            lower == "markets" -> "Markets"
+            lower == "business" -> "Business"
+            else -> trimmed
+        }
     }
 
-    fun toggleCategoryTag(tag: String) {
-        val current = _selectedCategoryTags.value
-        if (tag.equals("ALL", ignoreCase = true)) {
+    fun setCategory(category: String) {
+        val canonical = normalizeCategory(category)
+        if (canonical == "ALL") {
             _selectedCategoryTags.value = setOf("ALL")
             _selectedCategory.value = "ALL"
         } else {
-            val newSet = if (current.contains(tag)) {
-                val updated = current - tag
+            val currentCanonical = normalizeCategory(_selectedCategory.value)
+            if (currentCanonical.equals(canonical, ignoreCase = true) &&
+                _selectedCategoryTags.value.map { normalizeCategory(it) }.toSet() == setOf(canonical)
+            ) {
+                _selectedCategoryTags.value = setOf("ALL")
+                _selectedCategory.value = "ALL"
+            } else {
+                _selectedCategoryTags.value = setOf(canonical)
+                _selectedCategory.value = canonical
+            }
+        }
+        firebaseService.logEvent("category_selected", mapOf("category" to category))
+    }
+
+    private fun matchesCategory(article: Article, filterTag: String): Boolean {
+        val canonicalFilter = normalizeCategory(filterTag)
+        if (canonicalFilter == "ALL") return true
+        val canonicalArticle = normalizeCategory(article.category)
+        if (canonicalArticle.equals(canonicalFilter, ignoreCase = true)) return true
+        if (canonicalFilter == "AI") {
+            if (canonicalArticle == "AI") return true
+            val titleLower = article.title.lowercase()
+            if (titleLower.contains("ai ") || titleLower.contains(" ai") ||
+                titleLower.contains("artificial intelligence") ||
+                titleLower.contains("openai") || titleLower.contains("chatgpt") ||
+                titleLower.contains("llm") || titleLower.contains("machine learning")
+            ) return true
+        }
+        if (canonicalFilter == "Tech" && canonicalArticle == "AI") return true
+        return false
+    }
+
+    fun toggleCategoryTag(tag: String) {
+        val canonical = normalizeCategory(tag)
+        if (canonical == "ALL") {
+            _selectedCategoryTags.value = setOf("ALL")
+            _selectedCategory.value = "ALL"
+        } else {
+            val current = _selectedCategoryTags.value.map { normalizeCategory(it) }.toSet()
+            val newSet = if (current.contains(canonical)) {
+                val updated = current - canonical
                 if (updated.isEmpty()) setOf("ALL") else updated
             } else {
-                (current - "ALL") + tag
+                (current - "ALL") + canonical
             }
             _selectedCategoryTags.value = newSet
             _selectedCategory.value = newSet.firstOrNull() ?: "ALL"

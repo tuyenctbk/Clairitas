@@ -195,13 +195,13 @@ fun NewsRadarScreen(
                 Tab(
                     selected = selectedRadarTab == 0,
                     onClick = { selectedRadarTab = 0 },
-                    text = { Text("🎯 Keyword Traps", fontWeight = FontWeight.Bold) },
+                    text = { Text("🎯 " + androidx.compose.ui.res.stringResource(com.example.R.string.radar_traps_tab), fontWeight = FontWeight.Bold) },
                     modifier = Modifier.testTag("radar_tab_traps")
                 )
                 Tab(
                     selected = selectedRadarTab == 1,
                     onClick = { selectedRadarTab = 1 },
-                    text = { Text("🛡️ Noise & Bias Radar", fontWeight = FontWeight.Bold) },
+                    text = { Text("🛡️ " + androidx.compose.ui.res.stringResource(com.example.R.string.radar_analysis_tab), fontWeight = FontWeight.Bold) },
                     modifier = Modifier.testTag("radar_tab_analysis")
                 )
             }
@@ -443,7 +443,8 @@ fun NewsRadarScreen(
                                 article = article,
                                 onArticleClick = onArticleClick,
                                 onBookmarkToggle = { onBookmarkToggle(it) },
-                                onPlayAudio = { onPlayAudio(it) }
+                                onPlayAudio = { onPlayAudio(it) },
+                                modifier = Modifier.animateItem()
                             )
                         }
                         item {

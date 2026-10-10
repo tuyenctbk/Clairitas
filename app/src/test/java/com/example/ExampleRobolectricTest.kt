@@ -18,4 +18,22 @@ class ExampleRobolectricTest {
     val appName = context.getString(R.string.app_name)
     assertEquals("Sift", appName)
   }
+
+  @Test
+  fun `verify category strings localization`() {
+    val enTech = com.example.util.AppStrings.getCategoryTitle("Tech", "en")
+    assertEquals("Technology", enTech)
+
+    val viTech = com.example.util.AppStrings.getCategoryTitle("Tech", "vi")
+    assertEquals("Công nghệ", viTech)
+
+    val esTech = com.example.util.AppStrings.getCategoryTitle("Technology", "es")
+    assertEquals("Tecnología", esTech)
+
+    val deMarkets = com.example.util.AppStrings.getCategoryTitle("Markets", "de")
+    assertEquals("Märkte", deMarkets)
+
+    val frAi = com.example.util.AppStrings.getCategoryTitle("AI", "fr")
+    assertEquals("Intelligence Artificielle (IA)", frAi)
+  }
 }

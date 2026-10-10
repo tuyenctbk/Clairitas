@@ -544,7 +544,11 @@ fun PermissionApproveGuideCard(
                             .weight(1f)
                             .testTag("card_enable_permission_btn")
                     ) {
-                        Text("Approve Permission", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = androidx.compose.ui.res.stringResource(com.example.R.string.permission_approve_button),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
@@ -555,7 +559,11 @@ fun PermissionApproveGuideCard(
                         .weight(1f)
                         .testTag("card_open_settings_btn")
                 ) {
-                    Text("OS Settings", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        text = androidx.compose.ui.res.stringResource(com.example.R.string.permission_open_settings),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
 
                 if (onTestNotification != null) {
@@ -566,7 +574,11 @@ fun PermissionApproveGuideCard(
                             .weight(1f)
                             .testTag("card_test_alert_btn")
                     ) {
-                        Text("Test Alert", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(
+                            text = androidx.compose.ui.res.stringResource(com.example.R.string.permission_test_alert),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }

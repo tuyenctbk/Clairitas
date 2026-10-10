@@ -268,7 +268,7 @@ object AppStrings {
                 "th" -> "ทั้งหมด"
                 else -> "All"
             }
-            "technology" -> when (lang) {
+            "technology", "tech" -> when (lang) {
                 "vi" -> "Công nghệ"
                 "es" -> "Tecnología"
                 "fr" -> "Technologie"
@@ -304,7 +304,7 @@ object AppStrings {
                 "th" -> "วิทยาศาสตร์"
                 else -> "Science"
             }
-            "world" -> when (lang) {
+            "world", "global" -> when (lang) {
                 "vi" -> "Thế giới"
                 "es" -> "Mundo"
                 "fr" -> "Monde"
@@ -393,6 +393,60 @@ object AppStrings {
                 "id" -> "Olahraga"
                 "th" -> "กีฬา"
                 else -> "Sports"
+            }
+            "markets" -> when (lang) {
+                "vi" -> "Thị trường"
+                "es" -> "Mercados"
+                "fr" -> "Marchés"
+                "de" -> "Märkte"
+                "ja" -> "市場"
+                "ko" -> "시장"
+                "zh" -> "市场"
+                "pt" -> "Mercados"
+                "it" -> "Mercati"
+                "hi" -> "बाज़ार"
+                "ru" -> "Рынки"
+                "ar" -> "الأسواق"
+                "nl" -> "Markten"
+                "id" -> "Pasar"
+                "th" -> "ตลาด"
+                else -> "Markets"
+            }
+            "realestate", "real estate" -> when (lang) {
+                "vi" -> "Bất động sản"
+                "es" -> "Bienes Raíces"
+                "fr" -> "Immobilier"
+                "de" -> "Immobilien"
+                "ja" -> "不動産"
+                "ko" -> "부동산"
+                "zh" -> "房地产"
+                "pt" -> "Imobiliário"
+                "it" -> "Immobiliare"
+                "hi" -> "रियल एस्टेट"
+                "ru" -> "Недвижимость"
+                "ar" -> "العقارات"
+                "nl" -> "Vastgoed"
+                "id" -> "Properti"
+                "th" -> "อสังหาริมทรัพย์"
+                else -> "Real Estate"
+            }
+            "ai" -> when (lang) {
+                "vi" -> "Trí tuệ nhân tạo (AI)"
+                "es" -> "Inteligencia Artificial (IA)"
+                "fr" -> "Intelligence Artificielle (IA)"
+                "de" -> "Künstliche Intelligenz (KI)"
+                "ja" -> "人工知能 (AI)"
+                "ko" -> "인공지능 (AI)"
+                "zh" -> "人工智能 (AI)"
+                "pt" -> "Inteligência Artificial (IA)"
+                "it" -> "Intelligenza Artificiale (IA)"
+                "hi" -> "आर्टिफिशियल इंटेलिजेंस (AI)"
+                "ru" -> "Искусственный интеллект (ИИ)"
+                "ar" -> "الذكاء الاصطناعي (AI)"
+                "nl" -> "Kunstmatige Intelligentie (AI)"
+                "id" -> "Kecerdasan Buatan (AI)"
+                "th" -> "ปัญญาประดิษฐ์ (AI)"
+                else -> "AI"
             }
             else -> category
         }

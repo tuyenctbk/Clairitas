@@ -66,7 +66,7 @@ class AuthManager private constructor(private val context: Context) {
     ) {
         val currentAuth = auth
         if (currentAuth == null) {
-            onComplete(false, "Firebase Auth is unconfigured. Demo / Guest sign-in is available.")
+            onComplete(false, "Firebase Auth is unconfigured. Please connect Firebase in project settings.")
             return
         }
 

@@ -155,7 +155,8 @@ fun BookmarksScreen(
                         article = article,
                         onArticleClick = onArticleClick,
                         onBookmarkToggle = { onBookmarkToggle(it) },
-                        onPlayAudio = { onPlayAudio(it) }
+                        onPlayAudio = { onPlayAudio(it) },
+                        modifier = Modifier.animateItem()
                     )
                 }
                 item {
