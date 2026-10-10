@@ -123,7 +123,7 @@ fun SiftNavGraph(
                 onToggleCategoryTag = { viewModel.toggleCategoryTag(it) },
                 onSearchQueryChanged = { viewModel.setSearchQuery(it) },
                 onToggleOnlyHighSnr = { viewModel.toggleOnlyHighSnr() },
-                onRefresh = { viewModel.refreshFeed() },
+                onRefresh = { viewModel.refreshFeed(isManualPullToRefresh = true) },
                 onArticleClick = { article ->
                     viewModel.markAsRead(article.id)
                     navController.navigate(Screen.ArticleDetail.createRoute(article.id))

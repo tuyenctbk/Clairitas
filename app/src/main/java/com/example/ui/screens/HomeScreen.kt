@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -396,6 +398,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .testTag("pull_to_refresh_box")
         ) {
             Box(
                 modifier = Modifier
@@ -520,29 +523,41 @@ fun HomeScreen(
 
                     // Articles List or Empty State
                     if (feedError != null) {
-                        UnifiedErrorAndEmptyStateView(
-                            type = UnifiedStateType.API_FAILURE,
-                            customErrorMessage = feedError,
-                            onActionClick = {
-                                onClearError()
-                                onRefresh()
-                            },
-                            actionButtonText = stringResource(R.string.retry_action)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            UnifiedErrorAndEmptyStateView(
+                                type = UnifiedStateType.API_FAILURE,
+                                customErrorMessage = feedError,
+                                onActionClick = {
+                                    onClearError()
+                                    onRefresh()
+                                },
+                                actionButtonText = stringResource(R.string.retry_action)
+                            )
+                        }
                     } else if (articles.isEmpty()) {
-                        if (searchQuery.isNotBlank()) {
-                            UnifiedErrorAndEmptyStateView(
-                                type = UnifiedStateType.NO_RESULTS,
-                                customErrorMessage = "No articles matched \"$searchQuery\". Try search keywords like 'AI', 'Tech', or 'Markets'.",
-                                onActionClick = { onSearchQueryChanged("") },
-                                actionButtonText = "Clear Search"
-                            )
-                        } else {
-                            UnifiedErrorAndEmptyStateView(
-                                type = UnifiedStateType.EMPTY_FEED,
-                                onActionClick = onRefresh,
-                                actionButtonText = "Trigger Curation"
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            if (searchQuery.isNotBlank()) {
+                                UnifiedErrorAndEmptyStateView(
+                                    type = UnifiedStateType.NO_RESULTS,
+                                    customErrorMessage = "No articles matched \"$searchQuery\". Try search keywords like 'AI', 'Tech', or 'Markets'.",
+                                    onActionClick = { onSearchQueryChanged("") },
+                                    actionButtonText = "Clear Search"
+                                )
+                            } else {
+                                UnifiedErrorAndEmptyStateView(
+                                    type = UnifiedStateType.EMPTY_FEED,
+                                    onActionClick = onRefresh,
+                                    actionButtonText = "Trigger Curation"
+                                )
+                            }
                         }
                     } else {
                         LazyColumn(

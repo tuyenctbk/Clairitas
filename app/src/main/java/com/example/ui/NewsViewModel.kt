@@ -79,13 +79,11 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _isOnboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
     val isOnboardingCompleted: StateFlow<Boolean> = _isOnboardingCompleted.asStateFlow()
 
-    private val _articlesReadCount = MutableStateFlow(0)
+    private val _articlesReadCount = MutableStateFlow(prefs.getInt("total_articles_read_count", 0))
     val articlesReadCount: StateFlow<Int> = _articlesReadCount.asStateFlow()
 
     private val _showRatingPrompt = MutableStateFlow(false)
     val showRatingPrompt: StateFlow<Boolean> = _showRatingPrompt.asStateFlow()
-
-    private val _hasActionedRatingPrompt = MutableStateFlow(false)
 
     private val _selectedTimeBudget = MutableStateFlow(TimeBudget.DEEP_DIVE)
     val selectedTimeBudget: StateFlow<TimeBudget> = _selectedTimeBudget.asStateFlow()
@@ -213,6 +211,8 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
 
     init {
         loadStorageStats()
+        val currentLaunches = prefs.getInt("app_launch_count", 0) + 1
+        prefs.edit().putInt("app_launch_count", currentLaunches).apply()
     }
 
     val keywordTraps: StateFlow<List<KeywordTrapEntity>> = repository.allKeywordTraps
@@ -311,9 +311,30 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         firebaseService.logEvent("country_selected", mapOf("country" to country))
     }
 
+    fun canShowRatingPrompt(): Boolean {
+        val completed = prefs.getBoolean("rating_prompt_completed", false)
+        if (completed) return false
+        val dismissCount = prefs.getInt("rating_prompt_dismiss_count", 0)
+        if (dismissCount >= 2) return false
+        val lastDismissTime = prefs.getLong("rating_prompt_last_dismiss_time", 0L)
+        val now = System.currentTimeMillis()
+        val cooldownMs = 3 * 24 * 60 * 60 * 1000L // 3 days cooldown
+        if (lastDismissTime > 0 && (now - lastDismissTime) < cooldownMs) return false
+        val totalRead = prefs.getInt("total_articles_read_count", 0)
+        val launches = prefs.getInt("app_launch_count", 0)
+        return totalRead >= 5 && launches >= 2
+    }
+
     fun dismissRatingPrompt() {
         _showRatingPrompt.value = false
-        _hasActionedRatingPrompt.value = true
+        val currentDismissals = prefs.getInt("rating_prompt_dismiss_count", 0) + 1
+        val editor = prefs.edit()
+            .putInt("rating_prompt_dismiss_count", currentDismissals)
+            .putLong("rating_prompt_last_dismiss_time", System.currentTimeMillis())
+        if (currentDismissals >= 2) {
+            editor.putBoolean("rating_prompt_completed", true)
+        }
+        editor.apply()
     }
 
     fun dismissArticle(articleId: String) {
@@ -336,11 +357,13 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     fun submitAppRating(stars: Int) {
         firebaseService.logAppRating(stars)
         _showRatingPrompt.value = false
-        _hasActionedRatingPrompt.value = true
+        prefs.edit().putBoolean("rating_prompt_completed", true).apply()
     }
 
     fun triggerShareApp() {
         firebaseService.logAppShare()
+        _showRatingPrompt.value = false
+        prefs.edit().putBoolean("rating_prompt_completed", true).apply()
     }
 
     fun setTimeBudget(budget: TimeBudget) {
@@ -471,15 +494,17 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         prefs.edit().putString("custom_api_key", key).apply()
     }
 
-    fun refreshFeed() {
+    fun refreshFeed(isManualPullToRefresh: Boolean = false) {
         viewModelScope.launch {
             _isRefreshing.value = true
-            _isGlobalLoading.value = true
-            _isGeminiOperation.value = _selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD
-            _globalLoadingMessage.value = if (_selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD) {
-                "Synthesizing stories with Gemini AI..."
-            } else {
-                "Fetching news & processing TextRank signal..."
+            if (!isManualPullToRefresh) {
+                _isGlobalLoading.value = true
+                _isGeminiOperation.value = _selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD
+                _globalLoadingMessage.value = if (_selectedProcessingMode.value == ProcessingMode.BYOK_CLOUD) {
+                    "Synthesizing stories with Gemini AI..."
+                } else {
+                    "Fetching news & processing TextRank signal..."
+                }
             }
             _feedError.value = null
             try {
@@ -527,18 +552,17 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             repository.toggleBookmark(articleId, current)
             firebaseService.logBookmarkToggle(articleId, !current)
             syncBookmarksWithCloud()
-            if (!current && !_hasActionedRatingPrompt.value) {
-                _showRatingPrompt.value = true
-            }
         }
     }
 
     fun markAsRead(articleId: String) {
         viewModelScope.launch {
             repository.markAsRead(articleId)
-            _articlesReadCount.value += 1
+            val newTotal = prefs.getInt("total_articles_read_count", 0) + 1
+            prefs.edit().putInt("total_articles_read_count", newTotal).apply()
+            _articlesReadCount.value = newTotal
             firebaseService.logArticleView(articleId, _selectedCategory.value, 0.85f)
-            if (_articlesReadCount.value >= 2 && !_hasActionedRatingPrompt.value) {
+            if (canShowRatingPrompt()) {
                 _showRatingPrompt.value = true
             }
         }

@@ -1634,7 +1634,7 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Sift News v1.4.0 • Build 2026.08",
+                    text = "Sift News v${com.example.BuildConfig.VERSION_NAME} • Build ${com.example.BuildConfig.VERSION_CODE}",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

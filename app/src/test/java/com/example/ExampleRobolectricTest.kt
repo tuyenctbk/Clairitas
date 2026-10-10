@@ -36,4 +36,10 @@ class ExampleRobolectricTest {
     val frAi = com.example.util.AppStrings.getCategoryTitle("AI", "fr")
     assertEquals("Intelligence Artificielle (IA)", frAi)
   }
+
+  @Test
+  fun `verify app versioning`() {
+    assertEquals(6, BuildConfig.VERSION_CODE)
+    assertEquals("1.5", BuildConfig.VERSION_NAME)
+  }
 }
