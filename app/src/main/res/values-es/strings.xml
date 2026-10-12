@@ -75,7 +75,7 @@
     <string name="permission_feature_radar_desc">Le avisa en tiempo real cuando nuevas noticias coinciden con sus palabras clave.</string>
     <string name="permission_feature_audio_title">Resumen de audio matutino programado</string>
     <string name="permission_feature_audio_desc">Entrega su resumen ejecutivo diario de 3 minutos a la hora seleccionada.</string>
-    <string name="permission_feature_spam_title">Garantía de 100% Cero Spam</string>
+    <string name="permission_feature_spam_title" formatted="false">Garantía de 100% Cero Spam</string>
     <string name="permission_feature_spam_desc">NUNCA enviamos clickbait ni promociones. Solo noticias verificadas de alta señal.</string>
     <string name="permission_feature_privacy_title">Privacidad en el dispositivo</string>
     <string name="permission_feature_privacy_desc">Todas las alertas se ejecutan localmente en su teléfono.</string>

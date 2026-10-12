@@ -280,7 +280,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 2.dp)
                 ) {
-                    item {
+                    item(key = "high_snr_chip") {
                         var isSnrFocused by remember { mutableStateOf(false) }
                         FilterChip(
                             selected = onlyHighSnr,
@@ -303,15 +303,17 @@ fun HomeScreen(
                         )
                     }
 
-                    items(categories) { (code, label) ->
-                        val isAllSelected = selectedCategory.equals("ALL", ignoreCase = true) ||
+                    items(categories, key = { it.first }) { (code, label) ->
+                        val canonicalCode = com.example.util.AppStrings.normalizeCategory(code)
+                        val canonicalSelected = com.example.util.AppStrings.normalizeCategory(selectedCategory)
+                        val isAllSelected = canonicalSelected == "ALL" ||
                                 selectedCategoryTags.isEmpty() ||
-                                (selectedCategoryTags.size == 1 && selectedCategoryTags.any { it.equals("ALL", ignoreCase = true) })
+                                selectedCategoryTags.any { com.example.util.AppStrings.normalizeCategory(it) == "ALL" }
 
-                        val selected = if (code.equals("ALL", ignoreCase = true)) {
+                        val selected = if (canonicalCode == "ALL") {
                             isAllSelected
                         } else {
-                            !isAllSelected && (selectedCategory.equals(code, ignoreCase = true) || selectedCategoryTags.any { it.equals(code, ignoreCase = true) })
+                            !isAllSelected && (canonicalSelected == canonicalCode || selectedCategoryTags.any { com.example.util.AppStrings.normalizeCategory(it) == canonicalCode })
                         }
                         var isChipFocused by remember { mutableStateOf(false) }
 
@@ -469,7 +471,10 @@ fun HomeScreen(
                     }
 
                     // Intelligence Briefing Section Card
-                    if (searchQuery.isBlank() && selectedCategoryTags.contains("ALL") && intelligenceBriefingSummary.isNotBlank()) {
+                    val isAllCategorySelected = com.example.util.AppStrings.normalizeCategory(selectedCategory) == "ALL" ||
+                            selectedCategoryTags.isEmpty() ||
+                            selectedCategoryTags.any { com.example.util.AppStrings.normalizeCategory(it) == "ALL" }
+                    if (searchQuery.isBlank() && isAllCategorySelected && intelligenceBriefingSummary.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         androidx.compose.material3.Card(
                             shape = RoundedCornerShape(12.dp),
@@ -580,12 +585,13 @@ fun HomeScreen(
                                     onActionClick = { onSearchQueryChanged("") },
                                     actionButtonText = "Clear Search"
                                 )
-                            } else if (selectedCategory != "ALL" && !selectedCategoryTags.contains("ALL")) {
+                            } else if (!isAllCategorySelected) {
+                                val displayCatName = com.example.util.AppStrings.getCategoryTitle(selectedCategory, "en")
                                 UnifiedErrorAndEmptyStateView(
                                     type = UnifiedStateType.EMPTY_FEED,
-                                    customErrorMessage = "No articles found in $selectedCategory yet. Tap below to fetch live $selectedCategory feeds.",
+                                    customErrorMessage = "No articles found in $displayCatName yet. Tap below to fetch live $displayCatName feeds.",
                                     onActionClick = onRefresh,
-                                    actionButtonText = "Fetch $selectedCategory News"
+                                    actionButtonText = "Fetch $displayCatName News"
                                 )
                             } else {
                                 UnifiedErrorAndEmptyStateView(

@@ -246,7 +246,8 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         var list = articles.filter { !dismissedIds.contains(it.id) }
 
         // Multi-tag Category Filter
-        if (!categoryTags.contains("ALL") && categoryTags.isNotEmpty()) {
+        val isAll = categoryTags.isEmpty() || categoryTags.any { normalizeCategory(it) == "ALL" }
+        if (!isAll) {
             list = list.filter { article ->
                 categoryTags.any { tag -> matchesCategory(article, tag) }
             }
@@ -370,21 +371,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
         _selectedTimeBudget.value = budget
     }
 
-    fun normalizeCategory(raw: String): String {
-        val trimmed = raw.trim()
-        val lower = trimmed.lowercase()
-        return when {
-            lower == "all" || lower.isBlank() -> "ALL"
-            lower == "tech" || lower == "technology" -> "Tech"
-            lower == "world" || lower == "global" -> "World"
-            lower == "realestate" || lower == "real estate" -> "RealEstate"
-            lower == "ai" || lower.contains("artificial intelligence") -> "AI"
-            lower == "science" -> "Science"
-            lower == "markets" -> "Markets"
-            lower == "business" -> "Business"
-            else -> trimmed
-        }
-    }
+    fun normalizeCategory(raw: String): String = com.example.util.AppStrings.normalizeCategory(raw)
 
     fun setCategory(category: String) {
         val canonical = normalizeCategory(category)
@@ -392,26 +379,18 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             _selectedCategoryTags.value = setOf("ALL")
             _selectedCategory.value = "ALL"
         } else {
-            val currentCanonical = normalizeCategory(_selectedCategory.value)
-            if (currentCanonical.equals(canonical, ignoreCase = true) &&
-                _selectedCategoryTags.value.map { normalizeCategory(it) }.toSet() == setOf(canonical)
-            ) {
-                _selectedCategoryTags.value = setOf("ALL")
-                _selectedCategory.value = "ALL"
-            } else {
-                _selectedCategoryTags.value = setOf(canonical)
-                _selectedCategory.value = canonical
-                // Proactively fetch dedicated feed articles for the selected category
-                viewModelScope.launch {
-                    try {
-                        repository.refreshNewsFeed(
-                            processingMode = _selectedProcessingMode.value,
-                            customApiKey = _customApiKey.value,
-                            category = canonical
-                        )
-                    } catch (_: Exception) {
-                        // Fail silently and keep cached database articles
-                    }
+            _selectedCategoryTags.value = setOf(canonical)
+            _selectedCategory.value = canonical
+            // Proactively fetch dedicated feed articles for the selected category
+            viewModelScope.launch {
+                try {
+                    repository.refreshNewsFeed(
+                        processingMode = _selectedProcessingMode.value,
+                        customApiKey = _customApiKey.value,
+                        category = canonical
+                    )
+                } catch (_: Exception) {
+                    // Fail silently and keep cached database articles
                 }
             }
         }
@@ -445,12 +424,12 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             val current = _selectedCategoryTags.value.map { normalizeCategory(it) }.toSet()
             val newSet = if (current.contains(canonical)) {
                 val updated = current - canonical
-                if (updated.isEmpty()) setOf("ALL") else updated
+                if (updated.isEmpty() || updated == setOf("ALL")) setOf("ALL") else updated
             } else {
                 (current - "ALL") + canonical
             }
             _selectedCategoryTags.value = newSet
-            _selectedCategory.value = newSet.firstOrNull() ?: "ALL"
+            _selectedCategory.value = if (newSet.contains("ALL") || newSet.isEmpty()) "ALL" else newSet.first()
         }
         firebaseService.logEvent("category_toggled", mapOf("tag" to tag))
     }

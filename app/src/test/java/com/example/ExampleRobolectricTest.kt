@@ -38,6 +38,25 @@ class ExampleRobolectricTest {
   }
 
   @Test
+  fun `verify category normalization and strings`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    assertEquals("All", context.getString(R.string.category_all))
+    assertEquals("Technology", context.getString(R.string.category_tech))
+    assertEquals("World", context.getString(R.string.category_global))
+
+    assertEquals("Tech", com.example.util.AppStrings.normalizeCategory("Technology"))
+    assertEquals("Tech", com.example.util.AppStrings.normalizeCategory("tech"))
+    assertEquals("Tech", com.example.util.AppStrings.normalizeCategory("Công nghệ"))
+    assertEquals("ALL", com.example.util.AppStrings.normalizeCategory("All"))
+    assertEquals("ALL", com.example.util.AppStrings.normalizeCategory("All Topics"))
+    assertEquals("ALL", com.example.util.AppStrings.normalizeCategory("Tất cả"))
+    assertEquals("World", com.example.util.AppStrings.normalizeCategory("World"))
+    assertEquals("World", com.example.util.AppStrings.normalizeCategory("global"))
+    assertEquals("RealEstate", com.example.util.AppStrings.normalizeCategory("Real Estate"))
+    assertEquals("AI", com.example.util.AppStrings.normalizeCategory("Artificial Intelligence"))
+  }
+
+  @Test
   fun `verify app versioning`() {
     assertEquals(7, BuildConfig.VERSION_CODE)
     assertEquals("1.6", BuildConfig.VERSION_NAME)

@@ -452,6 +452,55 @@ object AppStrings {
         }
     }
 
+    fun normalizeCategory(raw: String): String {
+        val trimmed = raw.trim()
+        val lower = trimmed.lowercase()
+        return when {
+            lower == "all" || lower == "all topics" || lower.isBlank() ||
+            lower == "tất cả" || lower == "tất cả chủ đề" || lower == "todo" ||
+            lower == "todos los temas" || lower == "tout" || lower == "tous les sujets" ||
+            lower == "alle" || lower == "alle themen" || lower == "すべて" || lower == "すべてのトピック" ||
+            lower == "전체" || lower == "모든 주제" || lower == "全部" || lower == "所有主题" ||
+            lower == "सभी" || lower == "सभी विषय" || lower == "все" || lower == "الكل" ||
+            lower == "جميع المواضيع" -> "ALL"
+
+            lower == "tech" || lower == "technology" || lower == "công nghệ" ||
+            lower == "tecnología" || lower == "technologie" || lower == "科技" ||
+            lower == "기술" || lower == "प्रौद्योगिकी" || lower == "टेक्नोलॉजी" ||
+            lower == "технологии" || lower == "تكنولوجيا" -> "Tech"
+
+            lower == "world" || lower == "global" || lower == "thế giới" ||
+            lower == "mundo" || lower == "mundial" || lower == "monde" ||
+            lower == "welt" || lower == "世界" || lower == "세계" ||
+            lower == "दुनिया" || lower == "мир" || lower == "العالم" -> "World"
+
+            lower == "realestate" || lower == "real estate" || lower == "bất động sản" ||
+            lower == "bienes raíces" || lower == "immobilier" || lower == "immobilien" ||
+            lower == "房地产" || lower == "부동산" || lower == "रियल एस्टेट" ||
+            lower == "vastgoed" || lower == "properti" || lower == "imobiliário" ||
+            lower == "immobiliare" || lower == "недвижимость" || lower == "العقارات" -> "RealEstate"
+
+            lower == "ai" || lower.contains("artificial intelligence") ||
+            lower.contains("trí tuệ nhân tạo") || lower.contains("inteligencia artificial") ||
+            lower.contains("intelligence artificielle") || lower.contains("künstliche intelligenz") ||
+            lower.contains("인공지능") || lower.contains("人工智能") || lower.contains("искусственный интеллект") -> "AI"
+
+            lower == "science" || lower == "khoa học" || lower == "ciencia" ||
+            lower == "wissenschaft" || lower == "科学" || lower == "과학" ||
+            lower == "विज्ञान" || lower == "наука" || lower == "علوم" -> "Science"
+
+            lower == "markets" || lower == "thị trường" || lower == "mercados" ||
+            lower == "märkte" || lower == "marchés" || lower == "市場" ||
+            lower == "시장" || lower == "बाज़ार" || lower == "рынки" || lower == "الأسواق" -> "Markets"
+
+            lower == "business" || lower == "kinh doanh" || lower == "negocios" ||
+            lower == "affaires" || lower == "wirtschaft" || lower == "商业" ||
+            lower == "비즈니스" || lower == "व्यापार" || lower == "бизнес" || lower == "أعمال" -> "Business"
+
+            else -> trimmed
+        }
+    }
+
     fun getBriefingTitle(langCode: String): String {
         return when (langCode.lowercase().take(2)) {
             "vi" -> "Bản tin tình báo hàng ngày"
