@@ -401,6 +401,18 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             } else {
                 _selectedCategoryTags.value = setOf(canonical)
                 _selectedCategory.value = canonical
+                // Proactively fetch dedicated feed articles for the selected category
+                viewModelScope.launch {
+                    try {
+                        repository.refreshNewsFeed(
+                            processingMode = _selectedProcessingMode.value,
+                            customApiKey = _customApiKey.value,
+                            category = canonical
+                        )
+                    } catch (_: Exception) {
+                        // Fail silently and keep cached database articles
+                    }
+                }
             }
         }
         firebaseService.logEvent("category_selected", mapOf("category" to category))

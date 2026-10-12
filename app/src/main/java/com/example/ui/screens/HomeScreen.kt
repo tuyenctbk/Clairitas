@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalCafe
 import android.content.Intent
 import android.net.Uri
@@ -279,6 +281,7 @@ fun HomeScreen(
                         .padding(horizontal = 12.dp, vertical = 2.dp)
                 ) {
                     item {
+                        var isSnrFocused by remember { mutableStateOf(false) }
                         FilterChip(
                             selected = onlyHighSnr,
                             onClick = onToggleOnlyHighSnr,
@@ -290,6 +293,12 @@ fun HomeScreen(
                             ),
                             modifier = Modifier
                                 .height(28.dp)
+                                .onFocusChanged { isSnrFocused = it.isFocused }
+                                .border(
+                                    width = if (isSnrFocused) 2.dp else 0.dp,
+                                    color = if (isSnrFocused) MaterialTheme.colorScheme.tertiary else Color.Transparent,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
                                 .testTag("high_snr_chip")
                         )
                     }
@@ -304,6 +313,7 @@ fun HomeScreen(
                         } else {
                             !isAllSelected && (selectedCategory.equals(code, ignoreCase = true) || selectedCategoryTags.any { it.equals(code, ignoreCase = true) })
                         }
+                        var isChipFocused by remember { mutableStateOf(false) }
 
                         FilterChip(
                             selected = selected,
@@ -313,17 +323,36 @@ fun HomeScreen(
                             label = {
                                 Text(
                                     text = label,
-                                    fontSize = 11.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
                             ),
+                            leadingIcon = if (selected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(13.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            } else null,
                             modifier = Modifier
                                 .height(32.dp)
+                                .onFocusChanged { isChipFocused = it.isFocused }
+                                .border(
+                                    width = if (isChipFocused) 2.dp else 0.dp,
+                                    color = if (isChipFocused) MaterialTheme.colorScheme.tertiary else Color.Transparent,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
                                 .testTag("category_chip_$code")
                         )
                     }
@@ -550,6 +579,13 @@ fun HomeScreen(
                                     customErrorMessage = "No articles matched \"$searchQuery\". Try search keywords like 'AI', 'Tech', or 'Markets'.",
                                     onActionClick = { onSearchQueryChanged("") },
                                     actionButtonText = "Clear Search"
+                                )
+                            } else if (selectedCategory != "ALL" && !selectedCategoryTags.contains("ALL")) {
+                                UnifiedErrorAndEmptyStateView(
+                                    type = UnifiedStateType.EMPTY_FEED,
+                                    customErrorMessage = "No articles found in $selectedCategory yet. Tap below to fetch live $selectedCategory feeds.",
+                                    onActionClick = onRefresh,
+                                    actionButtonText = "Fetch $selectedCategory News"
                                 )
                             } else {
                                 UnifiedErrorAndEmptyStateView(

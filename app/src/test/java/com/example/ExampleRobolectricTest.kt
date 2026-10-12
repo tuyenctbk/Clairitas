@@ -39,7 +39,7 @@ class ExampleRobolectricTest {
 
   @Test
   fun `verify app versioning`() {
-    assertEquals(6, BuildConfig.VERSION_CODE)
-    assertEquals("1.5", BuildConfig.VERSION_NAME)
+    assertEquals(7, BuildConfig.VERSION_CODE)
+    assertEquals("1.6", BuildConfig.VERSION_NAME)
   }
 }

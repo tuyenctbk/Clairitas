@@ -2,7 +2,11 @@ package com.example.ui.components
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
@@ -59,17 +65,37 @@ fun ArticleCard(
     modifier: Modifier = Modifier
 ) {
     var showOriginalTitle by remember { mutableStateOf(false) }
+    var isCardFocused by remember { mutableStateOf(false) }
+    val cardScale by animateFloatAsState(
+        targetValue = if (isCardFocused) 1.025f else 1.0f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "card_focus_scale"
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .testTag("article_card_${article.id}")
+            .graphicsLayer {
+                scaleX = cardScale
+                scaleY = cardScale
+            }
+            .onFocusChanged { isCardFocused = it.isFocused }
+            .border(
+                width = if (isCardFocused) 2.5.dp else 0.dp,
+                color = if (isCardFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
             .clickable { onArticleClick(article) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            containerColor = if (isCardFocused) {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCardFocused) 6.dp else 0.5.dp)
     ) {
         Column(
             modifier = Modifier

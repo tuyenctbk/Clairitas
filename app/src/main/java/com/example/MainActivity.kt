@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -194,6 +198,12 @@ fun SiftApp(
 
     val navController = rememberNavController()
     val isTablet = LocalConfiguration.current.screenWidthDp >= 720
+    val isTv = remember {
+        val uiModeManager = context.getSystemService(android.content.Context.UI_MODE_SERVICE) as? android.app.UiModeManager
+        uiModeManager?.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION ||
+        context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)
+    }
+    val isExpandedScreen = isTablet || isTv
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -228,7 +238,7 @@ fun SiftApp(
         contentWindowInsets = WindowInsets.systemBars,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (!isTablet) {
+            if (!isExpandedScreen) {
                 BottomNavigationBar(
                     currentTab = currentTab,
                     onTabSelected = { tab ->
@@ -251,7 +261,7 @@ fun SiftApp(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (isTablet) {
+            if (isExpandedScreen) {
                 NavigationRail(
                     modifier = Modifier.testTag("tablet_navigation_rail"),
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -274,6 +284,7 @@ fun SiftApp(
                     Spacer(modifier = Modifier.weight(1f))
                     NavTab.entries.forEach { tab ->
                         val selected = tab == currentTab
+                        var isItemFocused by remember { mutableStateOf(false) }
                         NavigationRailItem(
                             selected = selected,
                             onClick = {
@@ -299,7 +310,14 @@ fun SiftApp(
                                     fontWeight = FontWeight.Bold
                                 )
                             },
-                            modifier = Modifier.testTag("nav_rail_item_${tab.route}")
+                            modifier = Modifier
+                                .onFocusChanged { isItemFocused = it.isFocused }
+                                .border(
+                                    width = if (isItemFocused) 2.dp else 0.dp,
+                                    color = if (isItemFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .testTag("nav_rail_item_${tab.route}")
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
