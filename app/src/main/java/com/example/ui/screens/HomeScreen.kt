@@ -108,6 +108,7 @@ fun HomeScreen(
     onPlayAudio: (Article) -> Unit,
     onDismissArticle: (Article) -> Unit = {},
     onPlayMorningDigest: (() -> Unit)? = null,
+    onContextCardClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
@@ -658,7 +659,8 @@ fun HomeScreen(
                                         onArticleClick = onArticleClick,
                                         onCategoryClick = onCategoryChanged,
                                         onBookmarkToggle = { onBookmarkToggle(it) },
-                                        onPlayAudio = { onPlayAudio(it) }
+                                        onPlayAudio = { onPlayAudio(it) },
+                                        onContextCardClick = onContextCardClick
                                     )
                                 }
                             }

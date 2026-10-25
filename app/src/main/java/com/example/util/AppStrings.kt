@@ -605,4 +605,89 @@ object AppStrings {
             else -> "Hide raw headline ˄"
         }
     }
+
+    fun getContextCardButton(langCode: String): String {
+        return when (langCode.lowercase().take(2)) {
+            "vi" -> "Bối cảnh"
+            "es" -> "Contexto"
+            "fr" -> "Contexte"
+            "de" -> "Kontext"
+            "ja" -> "コンテキスト"
+            "ko" -> "맥락"
+            "zh" -> "背景百科"
+            "pt" -> "Contexto"
+            "it" -> "Contesto"
+            "hi" -> "संदर्भ"
+            "ru" -> "Контекст"
+            "ar" -> "السياق"
+            "nl" -> "Context"
+            "id" -> "Konteks"
+            "th" -> "บริบท"
+            else -> "Context"
+        }
+    }
+
+    fun getContextCardTitle(langCode: String): String {
+        return when (langCode.lowercase().take(2)) {
+            "vi" -> "Bối cảnh Bách khoa toàn thư"
+            "es" -> "Contexto Enciclopédico"
+            "fr" -> "Contexte Encyclopédique"
+            "de" -> "Enzyklopädischer Kontext"
+            "ja" -> "百科事典コンテキスト"
+            "ko" -> "백과사전적 맥락"
+            "zh" -> "百科背景资料"
+            "pt" -> "Contexto Enciclopédico"
+            "it" -> "Contesto Enciclopedico"
+            "hi" -> "विश्वकोशीय संदर्भ"
+            "ru" -> "Энциклопедический контекст"
+            "ar" -> "السياق الموسوعي"
+            "nl" -> "Encyclopedische Context"
+            "id" -> "Konteks Ensiklopedia"
+            "th" -> "บริบทสารานุกรม"
+            else -> "Encyclopedic Context"
+        }
+    }
+
+    fun getContextCardSubtitle(langCode: String): String {
+        return when (langCode.lowercase().take(2)) {
+            "vi" -> "Thông tin từ MediaWiki & Wikipedia"
+            "es" -> "Inteligencia de MediaWiki y Wikipedia"
+            "fr" -> "Renseignements MediaWiki & Wikipédia"
+            "de" -> "MediaWiki & Wikipedia Intelligenz"
+            "ja" -> "MediaWiki & Wikipedia 情報"
+            "ko" -> "MediaWiki 및 Wikipedia 인텔리전스"
+            "zh" -> "MediaWiki 与维基百科情报"
+            "pt" -> "Inteligência MediaWiki e Wikipédia"
+            "it" -> "Intelligence MediaWiki & Wikipedia"
+            "hi" -> "MediaWiki और विकिपीडिया ज्ञान"
+            "ru" -> "Данные MediaWiki и Wikipedia"
+            "ar" -> "معلومات ميدياويكي وويكيبيديا"
+            "nl" -> "MediaWiki & Wikipedia Inzichten"
+            "id" -> "Wawasan MediaWiki & Wikipedia"
+            "th" -> "ข้อมูลเชิงลึกจาก MediaWiki & Wikipedia"
+            else -> "MediaWiki & Wikipedia Intelligence"
+        }
+    }
+
+    fun getOpenWikipediaLabel(langCode: String): String {
+        return when (langCode.lowercase().take(2)) {
+            "vi" -> "Đọc bài viết đầy đủ trên Wikipedia"
+            "es" -> "Leer artículo completo en Wikipedia"
+            "fr" -> "Lire l'article complet sur Wikipédia"
+            "de" -> "Vollständigen Wikipedia-Artikel lesen"
+            "ja" -> "Wikipediaの全文を読む"
+            "ko" -> "전체 Wikipedia 문서 읽기"
+            "zh" -> "在维基百科上阅读完整条目"
+            "pt" -> "Ler artigo completo na Wikipédia"
+            "it" -> "Leggi articolo completo su Wikipedia"
+            "hi" -> "विकिपीडिया पर पूरा लेख पढ़ें"
+            "ru" -> "Читать полную статью в Википедии"
+            "ar" -> "قراءة المقال بالكامل على ويكيبيديا"
+            "nl" -> "Lees volledig artikel op Wikipedia"
+            "id" -> "Baca artikel lengkap di Wikipedia"
+            "th" -> "อ่านบทความฉบับเต็มบน Wikipedia"
+            else -> "Read Full Wikipedia Article"
+        }
+    }
 }
+

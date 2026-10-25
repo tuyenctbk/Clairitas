@@ -43,6 +43,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -327,7 +328,7 @@ fun NewsRadarScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Scan Now", fontSize = 12.sp)
+                            Text(stringResource(com.example.R.string.radar_scan_now), fontSize = 12.sp)
                         }
                     }
                 }
@@ -619,7 +620,7 @@ fun NoiseAndBiasAnalysisView(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Re-scan Feed Signals")
+                        Text(stringResource(com.example.R.string.radar_rescan_signals))
                     }
                 }
             }

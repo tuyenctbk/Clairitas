@@ -143,7 +143,8 @@ fun SiftNavGraph(
                         }
                     }
                 },
-                onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() }
+                onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() },
+                onContextCardClick = { viewModel.loadContextCard(it) }
             )
         }
 
@@ -170,7 +171,8 @@ fun SiftNavGraph(
                 initialFontSize = readerFontSize,
                 initialTypeface = readerTypeface,
                 onFontSizeChanged = { viewModel.setReaderFontSize(it) },
-                onTypefaceChanged = { viewModel.setReaderTypeface(it) }
+                onTypefaceChanged = { viewModel.setReaderTypeface(it) },
+                onContextCardClick = { viewModel.loadContextCard(it) }
             )
         }
 
@@ -283,7 +285,8 @@ fun SiftNavGraph(
                         onReaderFontSizeChanged = { viewModel.setReaderFontSize(it) },
                         onReaderTypefaceChanged = { viewModel.setReaderTypeface(it) },
                         onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
-                        onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) }
+                        onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) },
+                        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) }
                     )
                 }
             }

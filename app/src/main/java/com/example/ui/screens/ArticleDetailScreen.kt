@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
@@ -67,10 +68,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.data.model.Article
 import com.example.ui.components.SnrBadge
 
@@ -88,6 +91,7 @@ fun ArticleDetailScreen(
     initialTypeface: String = "Serif",
     onFontSizeChanged: (Int) -> Unit = {},
     onTypefaceChanged: (String) -> Unit = {},
+    onContextCardClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     if (article == null) return
@@ -230,6 +234,18 @@ fun ArticleDetailScreen(
                             contentDescription = "Font Size",
                             tint = MaterialTheme.colorScheme.primary
                         )
+                    }
+                    if (onContextCardClick != null) {
+                        IconButton(
+                            onClick = { onContextCardClick.invoke(article.title) },
+                            modifier = Modifier.testTag("detail_context_card_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                contentDescription = stringResource(R.string.context_card_title),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                     IconButton(
                         onClick = shareArticleSummary,

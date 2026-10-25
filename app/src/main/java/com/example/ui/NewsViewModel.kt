@@ -15,7 +15,11 @@ import com.example.service.AudioQueueItem
 import com.example.service.BackgroundSyncInfo
 import com.example.service.BackgroundSyncManager
 import com.example.service.FirebaseService
+import com.example.data.remote.WikipediaContextService
+import com.example.ui.components.WikiContextState
 import com.example.ui.theme.ThemeMode
+import com.example.util.SuggestionPolicy
+import com.example.util.SuggestionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +88,14 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showRatingPrompt = MutableStateFlow(false)
     val showRatingPrompt: StateFlow<Boolean> = _showRatingPrompt.asStateFlow()
+
+    private val _activeSuggestion = MutableStateFlow(SuggestionType.NONE)
+    val activeSuggestion: StateFlow<SuggestionType> = _activeSuggestion.asStateFlow()
+
+    private val _isManualUpdateCheck = MutableStateFlow(false)
+    val isManualUpdateCheck: StateFlow<Boolean> = _isManualUpdateCheck.asStateFlow()
+
+    private var hasShownPromptThisSession = false
 
     private val _selectedTimeBudget = MutableStateFlow(TimeBudget.DEEP_DIVE)
     val selectedTimeBudget: StateFlow<TimeBudget> = _selectedTimeBudget.asStateFlow()
@@ -211,8 +223,16 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
 
     init {
         loadStorageStats()
-        val currentLaunches = prefs.getInt("app_launch_count", 0) + 1
-        prefs.edit().putInt("app_launch_count", currentLaunches).apply()
+        val currentLaunches = prefs.getInt(SuggestionPolicy.PREF_APP_LAUNCH_COUNT, 0) + 1
+        prefs.edit().putInt(SuggestionPolicy.PREF_APP_LAUNCH_COUNT, currentLaunches).apply()
+
+        if (SuggestionPolicy.canShowVersionUpdateNotice(prefs, com.example.BuildConfig.VERSION_CODE, hasShownPromptThisSession)) {
+            _activeSuggestion.value = SuggestionType.UPDATE
+            hasShownPromptThisSession = true
+            SuggestionPolicy.markPromptShown(prefs)
+        } else if (prefs.getInt(SuggestionPolicy.PREF_LAST_SEEN_VERSION_CODE, 0) == 0) {
+            SuggestionPolicy.markVersionNoticeSeen(prefs, com.example.BuildConfig.VERSION_CODE)
+        }
     }
 
     val keywordTraps: StateFlow<List<KeywordTrapEntity>> = repository.allKeywordTraps
@@ -313,29 +333,34 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     }
 
     fun canShowRatingPrompt(): Boolean {
-        val completed = prefs.getBoolean("rating_prompt_completed", false)
-        if (completed) return false
-        val dismissCount = prefs.getInt("rating_prompt_dismiss_count", 0)
-        if (dismissCount >= 2) return false
-        val lastDismissTime = prefs.getLong("rating_prompt_last_dismiss_time", 0L)
-        val now = System.currentTimeMillis()
-        val cooldownMs = 3 * 24 * 60 * 60 * 1000L // 3 days cooldown
-        if (lastDismissTime > 0 && (now - lastDismissTime) < cooldownMs) return false
-        val totalRead = prefs.getInt("total_articles_read_count", 0)
-        val launches = prefs.getInt("app_launch_count", 0)
-        return totalRead >= 5 && launches >= 2
+        return SuggestionPolicy.canShowRatingPrompt(prefs, hasShownPromptThisSession)
     }
 
-    fun dismissRatingPrompt() {
+    fun checkForUpdates(manual: Boolean = true) {
+        _isManualUpdateCheck.value = manual
+        _activeSuggestion.value = SuggestionType.UPDATE
+        hasShownPromptThisSession = true
+        SuggestionPolicy.markVersionNoticeSeen(prefs, com.example.BuildConfig.VERSION_CODE)
+        SuggestionPolicy.markPromptShown(prefs)
+    }
+
+    fun dismissSuggestion(type: SuggestionType, neverAskAgain: Boolean = false) {
+        _activeSuggestion.value = SuggestionType.NONE
         _showRatingPrompt.value = false
-        val currentDismissals = prefs.getInt("rating_prompt_dismiss_count", 0) + 1
-        val editor = prefs.edit()
-            .putInt("rating_prompt_dismiss_count", currentDismissals)
-            .putLong("rating_prompt_last_dismiss_time", System.currentTimeMillis())
-        if (currentDismissals >= 2) {
-            editor.putBoolean("rating_prompt_completed", true)
+        SuggestionPolicy.recordDismissal(prefs, type, neverAskAgain)
+        if (type == SuggestionType.UPDATE) {
+            SuggestionPolicy.markVersionNoticeSeen(prefs, com.example.BuildConfig.VERSION_CODE)
         }
-        editor.apply()
+    }
+
+    fun completeSuggestion(type: SuggestionType) {
+        _activeSuggestion.value = SuggestionType.NONE
+        _showRatingPrompt.value = false
+        SuggestionPolicy.recordCompleted(prefs, type)
+    }
+
+    fun dismissRatingPrompt(neverAskAgain: Boolean = false) {
+        dismissSuggestion(SuggestionType.RATING, neverAskAgain)
     }
 
     fun dismissArticle(articleId: String) {
@@ -357,14 +382,20 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
 
     fun submitAppRating(stars: Int) {
         firebaseService.logAppRating(stars)
-        _showRatingPrompt.value = false
-        prefs.edit().putBoolean("rating_prompt_completed", true).apply()
+        completeSuggestion(SuggestionType.RATING)
     }
 
     fun triggerShareApp() {
         firebaseService.logAppShare()
-        _showRatingPrompt.value = false
-        prefs.edit().putBoolean("rating_prompt_completed", true).apply()
+        completeSuggestion(SuggestionType.SHARE)
+    }
+
+    fun dismissSharePrompt(neverAskAgain: Boolean = false) {
+        dismissSuggestion(SuggestionType.SHARE, neverAskAgain)
+    }
+
+    fun dismissUpdatePrompt() {
+        dismissSuggestion(SuggestionType.UPDATE)
     }
 
     fun setTimeBudget(budget: TimeBudget) {
@@ -543,18 +574,30 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             repository.toggleBookmark(articleId, current)
             firebaseService.logBookmarkToggle(articleId, !current)
             syncBookmarksWithCloud()
+            if (!current) {
+                val newCount = prefs.getInt(SuggestionPolicy.PREF_BOOKMARKS_COUNT, 0) + 1
+                prefs.edit().putInt(SuggestionPolicy.PREF_BOOKMARKS_COUNT, newCount).apply()
+                if (SuggestionPolicy.canShowSharePrompt(prefs, hasShownPromptThisSession)) {
+                    _activeSuggestion.value = SuggestionType.SHARE
+                    hasShownPromptThisSession = true
+                    SuggestionPolicy.markPromptShown(prefs)
+                }
+            }
         }
     }
 
     fun markAsRead(articleId: String) {
         viewModelScope.launch {
             repository.markAsRead(articleId)
-            val newTotal = prefs.getInt("total_articles_read_count", 0) + 1
-            prefs.edit().putInt("total_articles_read_count", newTotal).apply()
+            val newTotal = prefs.getInt(SuggestionPolicy.PREF_TOTAL_READ_COUNT, 0) + 1
+            prefs.edit().putInt(SuggestionPolicy.PREF_TOTAL_READ_COUNT, newTotal).apply()
             _articlesReadCount.value = newTotal
             firebaseService.logArticleView(articleId, _selectedCategory.value, 0.85f)
-            if (canShowRatingPrompt()) {
+            if (SuggestionPolicy.canShowRatingPrompt(prefs, hasShownPromptThisSession)) {
+                _activeSuggestion.value = SuggestionType.RATING
                 _showRatingPrompt.value = true
+                hasShownPromptThisSession = true
+                SuggestionPolicy.markPromptShown(prefs)
             }
         }
     }
@@ -603,6 +646,36 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             val notificationManager = com.example.service.RadarNotificationManager(getApplication())
             notificationManager.sendDailyDigestNotification(currentFeed)
         }
+    }
+
+    private val _wikiContextState = MutableStateFlow<WikiContextState>(WikiContextState.Idle)
+    val wikiContextState: StateFlow<WikiContextState> = _wikiContextState.asStateFlow()
+
+    fun loadContextCard(headline: String) {
+        viewModelScope.launch {
+            _wikiContextState.value = WikiContextState.Loading(headline)
+            firebaseService.logEvent("context_card_requested", mapOf("headline" to headline.take(100)))
+            try {
+                val data = WikipediaContextService.getContextForHeadline(headline)
+                if (data != null) {
+                    _wikiContextState.value = WikiContextState.Success(headline, data)
+                } else {
+                    _wikiContextState.value = WikiContextState.Error(
+                        headline,
+                        "No encyclopedic summary found on Wikipedia for this specific topic."
+                    )
+                }
+            } catch (e: Exception) {
+                _wikiContextState.value = WikiContextState.Error(
+                    headline,
+                    e.localizedMessage ?: "Failed to query MediaWiki API."
+                )
+            }
+        }
+    }
+
+    fun dismissContextCard() {
+        _wikiContextState.value = WikiContextState.Idle
     }
 
     override fun onCleared() {

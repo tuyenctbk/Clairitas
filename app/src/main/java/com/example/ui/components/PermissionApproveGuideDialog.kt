@@ -340,10 +340,10 @@ fun PermissionApproveGuideDialog(
                     exit = fadeOut() + shrinkVertically()
                 ) {
                     Column(modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)) {
-                        Text("1. Tap 'Open Settings' below.", fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("2. Navigate to 'Notifications'.", fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("3. Enable 'Allow all Sift notifications'.", fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("4. Ensure 'News Radar Alerts' and 'Morning Digest' channels are toggled ON.", fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.permission_step_1), fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.permission_step_2), fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.permission_step_3), fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.permission_step_4), fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -639,7 +639,7 @@ fun PermissionApproveBanner(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.testTag("banner_review_guide_btn")
             ) {
-                Text("Guide", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.guide_label), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

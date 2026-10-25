@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Article
 import com.example.ui.NewsViewModel
+import com.example.ui.components.ContextCardBottomSheet
 import com.example.ui.components.AudioPlayerBar
 import com.example.ui.components.BottomNavigationBar
 import com.example.ui.components.NavTab
@@ -219,13 +220,51 @@ fun SiftApp(
         }
     }
 
-    if (showRatingPrompt) {
-        SmartRatingDialog(
-            onDismiss = { viewModel.dismissRatingPrompt() },
-            onRateSubmitted = { stars -> viewModel.submitAppRating(stars) },
-            onShareApp = { viewModel.triggerShareApp() }
-        )
+    val wikiContextState by viewModel.wikiContextState.collectAsStateWithLifecycle()
+    val activeSuggestion by viewModel.activeSuggestion.collectAsStateWithLifecycle()
+    val isManualUpdateCheck by viewModel.isManualUpdateCheck.collectAsStateWithLifecycle()
+
+    when (activeSuggestion) {
+        com.example.util.SuggestionType.RATING -> {
+            SmartRatingDialog(
+                onDismiss = { viewModel.dismissRatingPrompt() },
+                onNeverAskAgain = { viewModel.dismissRatingPrompt(neverAskAgain = true) },
+                onRateSubmitted = { stars -> viewModel.submitAppRating(stars) },
+                onShareApp = { viewModel.triggerShareApp() }
+            )
+        }
+        com.example.util.SuggestionType.SHARE -> {
+            com.example.ui.components.SmartShareDialog(
+                onDismiss = { viewModel.dismissSharePrompt() },
+                onNeverAskAgain = { viewModel.dismissSharePrompt(neverAskAgain = true) },
+                onShareApp = { viewModel.triggerShareApp() }
+            )
+        }
+        com.example.util.SuggestionType.UPDATE -> {
+            com.example.ui.components.WhatsNewUpdateDialog(
+                versionName = com.example.BuildConfig.VERSION_NAME,
+                onDismiss = { viewModel.dismissUpdatePrompt() },
+                isManualCheck = isManualUpdateCheck
+            )
+        }
+        com.example.util.SuggestionType.NONE -> {
+            if (showRatingPrompt) {
+                SmartRatingDialog(
+                    onDismiss = { viewModel.dismissRatingPrompt() },
+                    onNeverAskAgain = { viewModel.dismissRatingPrompt(neverAskAgain = true) },
+                    onRateSubmitted = { stars -> viewModel.submitAppRating(stars) },
+                    onShareApp = { viewModel.triggerShareApp() }
+                )
+            }
+        }
     }
+
+    // Encyclopedic Context Card BottomSheet (MediaWiki API)
+    ContextCardBottomSheet(
+        state = wikiContextState,
+        onDismiss = { viewModel.dismissContextCard() },
+        isTvOrTablet = isExpandedScreen
+    )
 
     // Global Overlay for Gemini API & Firestore operation feedback
     GlobalLoadingOverlay(

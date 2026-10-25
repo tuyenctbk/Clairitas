@@ -8,8 +8,12 @@ import com.example.data.local.KeywordTrapEntity
 import com.example.data.model.Article
 import com.example.data.model.ProcessingMode
 import com.example.data.remote.RssNewsFetcher
+import com.example.data.remote.HackerNewsFetcher
+import com.example.data.remote.ArxivFetcher
+import com.example.data.remote.GdeltFetcher
 import com.example.service.RadarNotificationManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -200,7 +204,20 @@ class NewsRepository(
         category: String = "ALL"
     ): List<Article> = withContext(Dispatchers.IO) {
         val liveArticles = try {
-            RssNewsFetcher.fetchLiveArticles(category)
+            val isAll = category.equals("ALL", ignoreCase = true)
+            val isTech = isAll || category.equals("Tech", ignoreCase = true) || category.equals("AI", ignoreCase = true)
+            val isScience = isAll || category.equals("Science", ignoreCase = true) || category.equals("AI", ignoreCase = true)
+            val isWorld = isAll || category.equals("World", ignoreCase = true) || category.equals("Markets", ignoreCase = true)
+
+            val rssDeferred = async { RssNewsFetcher.fetchLiveArticles(category) }
+            val hnDeferred = async { if (isTech) HackerNewsFetcher.fetchTopTechStories() else emptyList() }
+            val arxivDeferred = async { if (isScience) ArxivFetcher.fetchRecentPapers() else emptyList() }
+            val gdeltDeferred = async { if (isWorld) GdeltFetcher.fetchGlobalEvents() else emptyList() }
+
+            val combined = rssDeferred.await() + hnDeferred.await() + arxivDeferred.await() + gdeltDeferred.await()
+            combined.filter { it.title.isNotBlank() && it.fullContent.isNotBlank() }
+                .distinctBy { it.sourceUrl.ifBlank { it.title.lowercase().trim() } }
+                .sortedByDescending { it.publishedAt }
         } catch (_: Exception) {
             emptyList()
         }

@@ -32,8 +32,8 @@ data class Article(
     val publishedAt: Long,
     val snrScore: Float, // 0.0 to 1.0 (e.g. 0.85 = 85%)
     val biasCategory: String,
-    val timeEstimateMinutes: Int,
-    val processingModeUsed: String,
+    val timeEstimateMinutes: Int = 2,
+    val processingModeUsed: String = "High SNR Engine",
     val isBookmarked: Boolean = false,
     val isRead: Boolean = false,
     val matchedTrapKeywords: List<String> = emptyList()

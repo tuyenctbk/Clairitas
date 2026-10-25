@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.BarChart
@@ -43,6 +44,7 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.data.model.Article
 import com.example.ui.components.SupportDonationCard
 import androidx.compose.material3.Button
@@ -115,6 +117,7 @@ fun SettingsScreen(
     onAutoClearRetentionDaysChanged: (Int) -> Unit = {},
     onPreCacheForOfflineChanged: (Boolean) -> Unit = {},
     onBriefingScheduleChanged: (Int, Int) -> Unit = { _, _ -> },
+    onCheckForUpdates: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -253,7 +256,7 @@ fun SettingsScreen(
                             onClick = onSignOut,
                             modifier = Modifier.testTag("sign_out_button")
                         ) {
-                            Text("Sign Out", fontSize = 12.sp)
+                            Text(stringResource(R.string.sign_out), fontSize = 12.sp)
                         }
                     }
                 } else {
@@ -263,7 +266,7 @@ fun SettingsScreen(
                             .fillMaxWidth()
                             .testTag("google_sign_in_button")
                     ) {
-                        Text("Sign in with Google", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.sign_in_google), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1489,7 +1492,7 @@ fun SettingsScreen(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.testTag("save_api_key_button")
                     ) {
-                        Text("Save API Key")
+                        Text(stringResource(R.string.settings_save))
                     }
 
                     if (keySavedMsg) {
@@ -1563,7 +1566,7 @@ fun SettingsScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Share Now")
+                    Text(stringResource(R.string.share_now))
                 }
             }
         }
@@ -1646,6 +1649,24 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.outline,
                     fontSize = 11.sp
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onCheckForUpdates,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.testTag("check_for_updates_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Upgrade,
+                        contentDescription = "Check for Updates",
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.check_for_updates),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 
@@ -1762,7 +1783,7 @@ fun SettingsScreen(
                             .fillMaxWidth()
                             .testTag("log_workmanager_metrics_button")
                     ) {
-                        Text("Log Diagnostics to Logcat")
+                        Text(stringResource(R.string.log_diagnostics))
                     }
                 }
             }

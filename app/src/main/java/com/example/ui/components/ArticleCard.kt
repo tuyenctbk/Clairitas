@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -52,7 +53,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.data.model.Article
 
 @Composable
@@ -62,6 +65,7 @@ fun ArticleCard(
     onBookmarkToggle: (Article) -> Unit,
     onPlayAudio: (Article) -> Unit,
     onCategoryClick: ((String) -> Unit)? = null,
+    onContextCardClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showOriginalTitle by remember { mutableStateOf(false) }
@@ -342,6 +346,44 @@ fun ArticleCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onContextCardClick != null) {
+                        var isContextFocused by remember { mutableStateOf(false) }
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.55f),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .onFocusChanged { isContextFocused = it.isFocused }
+                                .border(
+                                    width = if (isContextFocused) 2.dp else 0.dp,
+                                    color = if (isContextFocused) MaterialTheme.colorScheme.tertiary else Color.Transparent,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .clickable { onContextCardClick.invoke(article.title) }
+                                .testTag("context_card_button_${article.id}")
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                    contentDescription = stringResource(R.string.context_card_title),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = stringResource(R.string.context_card_button),
+                                    fontSize = 10.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
                     IconButton(
                         onClick = {
                             val shareText = "Sift News Curation & Intelligence:\n" +
