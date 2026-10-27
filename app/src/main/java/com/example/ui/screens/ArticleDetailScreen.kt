@@ -92,6 +92,8 @@ fun ArticleDetailScreen(
     onFontSizeChanged: (Int) -> Unit = {},
     onTypefaceChanged: (String) -> Unit = {},
     onContextCardClick: ((String) -> Unit)? = null,
+    isActiveSupporter: Boolean = false,
+    onOpenDonationDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (article == null) return
@@ -107,6 +109,7 @@ fun ArticleDetailScreen(
     var showInAppBrowser by remember { mutableStateOf(false) }
     var isReaderMode by remember { mutableStateOf(true) }
     var showAISummary by remember { androidx.compose.runtime.mutableStateOf(true) }
+    var showPostOperationCard by remember { mutableStateOf(true) }
     var readerTheme by remember { mutableStateOf("Light") } // "Light", "Sepia", "Dark", "Sage"
     var readerFontSizeSp by remember { mutableStateOf(initialFontSize) }
     var readerTypefaceStr by remember { mutableStateOf(initialTypeface) }
@@ -765,7 +768,7 @@ fun ArticleDetailScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "Share Key Takeaways",
+                                        text = stringResource(R.string.share_key_takeaways),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -775,6 +778,14 @@ fun ArticleDetailScreen(
                         }
                     }
                 }
+            }
+
+            if (!isActiveSupporter && showPostOperationCard) {
+                Spacer(modifier = Modifier.height(12.dp))
+                com.example.ui.components.PostOperationSuccessCard(
+                    onSupportClick = onOpenDonationDialog,
+                    onDismiss = { showPostOperationCard = false }
+                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))

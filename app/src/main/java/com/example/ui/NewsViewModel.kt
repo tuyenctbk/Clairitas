@@ -18,6 +18,7 @@ import com.example.service.FirebaseService
 import com.example.data.remote.WikipediaContextService
 import com.example.ui.components.WikiContextState
 import com.example.ui.theme.ThemeMode
+import com.example.util.DonationManager
 import com.example.util.SuggestionPolicy
 import com.example.util.SuggestionType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -96,6 +97,21 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     val isManualUpdateCheck: StateFlow<Boolean> = _isManualUpdateCheck.asStateFlow()
 
     private var hasShownPromptThisSession = false
+
+    private val _isActiveSupporter = MutableStateFlow(DonationManager.isActiveSupporter(prefs))
+    val isActiveSupporter: StateFlow<Boolean> = _isActiveSupporter.asStateFlow()
+
+    private val _supporterTier = MutableStateFlow(DonationManager.getSupporterTier(prefs))
+    val supporterTier: StateFlow<String?> = _supporterTier.asStateFlow()
+
+    private val _showHomeScreenDonationBanner = MutableStateFlow(DonationManager.canShowHomeScreenBanner(prefs))
+    val showHomeScreenDonationBanner: StateFlow<Boolean> = _showHomeScreenDonationBanner.asStateFlow()
+
+    private val _showDonationDialog = MutableStateFlow(false)
+    val showDonationDialog: StateFlow<Boolean> = _showDonationDialog.asStateFlow()
+
+    private val _celebrationMilestone = MutableStateFlow<Int?>(null)
+    val celebrationMilestone: StateFlow<Int?> = _celebrationMilestone.asStateFlow()
 
     private val _selectedTimeBudget = MutableStateFlow(TimeBudget.DEEP_DIVE)
     val selectedTimeBudget: StateFlow<TimeBudget> = _selectedTimeBudget.asStateFlow()
@@ -222,6 +238,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
     val intelligenceBriefingSummary: StateFlow<String> = _intelligenceBriefingSummary.asStateFlow()
 
     init {
+        DonationManager.initializeFirstInstall(prefs)
         loadStorageStats()
         val currentLaunches = prefs.getInt(SuggestionPolicy.PREF_APP_LAUNCH_COUNT, 0) + 1
         prefs.edit().putInt(SuggestionPolicy.PREF_APP_LAUNCH_COUNT, currentLaunches).apply()
@@ -577,6 +594,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             if (!current) {
                 val newCount = prefs.getInt(SuggestionPolicy.PREF_BOOKMARKS_COUNT, 0) + 1
                 prefs.edit().putInt(SuggestionPolicy.PREF_BOOKMARKS_COUNT, newCount).apply()
+                recordOperationMilestone("bookmark")
                 if (SuggestionPolicy.canShowSharePrompt(prefs, hasShownPromptThisSession)) {
                     _activeSuggestion.value = SuggestionType.SHARE
                     hasShownPromptThisSession = true
@@ -593,6 +611,7 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
             prefs.edit().putInt(SuggestionPolicy.PREF_TOTAL_READ_COUNT, newTotal).apply()
             _articlesReadCount.value = newTotal
             firebaseService.logArticleView(articleId, _selectedCategory.value, 0.85f)
+            recordOperationMilestone("read")
             if (SuggestionPolicy.canShowRatingPrompt(prefs, hasShownPromptThisSession)) {
                 _activeSuggestion.value = SuggestionType.RATING
                 _showRatingPrompt.value = true
@@ -600,6 +619,45 @@ private val _isLowPowerMode = MutableStateFlow(prefs.getBoolean("is_low_power_mo
                 SuggestionPolicy.markPromptShown(prefs)
             }
         }
+    }
+
+    fun recordOperationMilestone(operationName: String) {
+        val opCount = DonationManager.recordSuccessfulOperation(prefs)
+        val milestone = DonationManager.checkAndGetMilestone(prefs, opCount)
+        if (milestone != null && !_isActiveSupporter.value) {
+            _celebrationMilestone.value = milestone
+        } else if (DonationManager.canShowAutoPromptDialog(prefs) && !hasShownPromptThisSession) {
+            _showDonationDialog.value = true
+            hasShownPromptThisSession = true
+            DonationManager.recordAutoPromptShown(prefs)
+        }
+        _showHomeScreenDonationBanner.value = DonationManager.canShowHomeScreenBanner(prefs)
+    }
+
+    fun openDonationDialog() {
+        _showDonationDialog.value = true
+    }
+
+    fun dismissDonationDialog() {
+        _showDonationDialog.value = false
+        DonationManager.recordAutoPromptShown(prefs)
+    }
+
+    fun dismissMilestoneDialog() {
+        _celebrationMilestone.value = null
+    }
+
+    fun dismissHomeScreenDonationBanner() {
+        DonationManager.recordBannerDismissed(prefs)
+        _showHomeScreenDonationBanner.value = false
+    }
+
+    fun activateSupporterTier(tierId: String) {
+        DonationManager.setSupporterStatus(prefs, true, tierId)
+        _isActiveSupporter.value = true
+        _supporterTier.value = tierId
+        _showHomeScreenDonationBanner.value = false
+        _showDonationDialog.value = false
     }
 
     fun addKeywordTrap(keyword: String, category: String = "ALL") {

@@ -223,6 +223,9 @@ fun SiftApp(
     val wikiContextState by viewModel.wikiContextState.collectAsStateWithLifecycle()
     val activeSuggestion by viewModel.activeSuggestion.collectAsStateWithLifecycle()
     val isManualUpdateCheck by viewModel.isManualUpdateCheck.collectAsStateWithLifecycle()
+    val showDonationDialog by viewModel.showDonationDialog.collectAsStateWithLifecycle()
+    val isActiveSupporter by viewModel.isActiveSupporter.collectAsStateWithLifecycle()
+    val celebrationMilestone by viewModel.celebrationMilestone.collectAsStateWithLifecycle()
 
     when (activeSuggestion) {
         com.example.util.SuggestionType.RATING -> {
@@ -257,6 +260,25 @@ fun SiftApp(
                 )
             }
         }
+    }
+
+    if (showDonationDialog) {
+        com.example.ui.components.DonationDialog(
+            isActiveSupporter = isActiveSupporter,
+            onDismiss = { viewModel.dismissDonationDialog() },
+            onSupporterActivated = { tierId -> viewModel.activateSupporterTier(tierId) }
+        )
+    }
+
+    celebrationMilestone?.let { milestone ->
+        com.example.ui.components.MilestoneCelebrationDialog(
+            milestoneCount = milestone,
+            onSupportClick = {
+                viewModel.dismissMilestoneDialog()
+                viewModel.openDonationDialog()
+            },
+            onDismiss = { viewModel.dismissMilestoneDialog() }
+        )
     }
 
     // Encyclopedic Context Card BottomSheet (MediaWiki API)

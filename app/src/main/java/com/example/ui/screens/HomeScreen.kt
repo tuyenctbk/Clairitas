@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalCafe
+import com.example.ui.components.HomeScreenDonationBanner
+import com.example.ui.components.ActiveSupporterBadge
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
@@ -109,6 +111,10 @@ fun HomeScreen(
     onDismissArticle: (Article) -> Unit = {},
     onPlayMorningDigest: (() -> Unit)? = null,
     onContextCardClick: ((String) -> Unit)? = null,
+    isActiveSupporter: Boolean = false,
+    showDonationBanner: Boolean = false,
+    onOpenDonationDialog: () -> Unit = {},
+    onDismissDonationBanner: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
@@ -213,24 +219,25 @@ fun HomeScreen(
                         }
                     },
                     actions = {
-                        IconButton(
-                            onClick = {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/tuyenphamvn"))
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                } catch (_: Exception) {}
-                            },
-                            modifier = Modifier
-                                .size(32.dp)
-                                .testTag("top_bar_coffee_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocalCafe,
-                                contentDescription = "Buy Me a Coffee",
-                                tint = Color(0xFFE65100),
-                                modifier = Modifier.size(18.dp)
+                        if (isActiveSupporter) {
+                            ActiveSupporterBadge(
+                                onClick = onOpenDonationDialog,
+                                modifier = Modifier.padding(end = 4.dp)
                             )
+                        } else {
+                            IconButton(
+                                onClick = onOpenDonationDialog,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .testTag("top_bar_coffee_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocalCafe,
+                                    contentDescription = stringResource(R.string.buy_me_a_coffee),
+                                    tint = Color(0xFFE65100),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                         if (onPlayMorningDigest != null) {
                             IconButton(
@@ -469,6 +476,15 @@ fun HomeScreen(
                                     .padding(horizontal = 4.dp, vertical = 2.dp)
                             )
                         }
+                    }
+
+                    if (showDonationBanner && !isActiveSupporter) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        HomeScreenDonationBanner(
+                            onSupportClick = onOpenDonationDialog,
+                            onDismiss = onDismissDonationBanner,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
                     }
 
                     // Intelligence Briefing Section Card

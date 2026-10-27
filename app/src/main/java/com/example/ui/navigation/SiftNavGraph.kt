@@ -91,6 +91,8 @@ fun SiftNavGraph(
     val currentAudioTitle by viewModel.audioManager.currentTitle.collectAsStateWithLifecycle()
     val speechSpeed by viewModel.audioManager.currentSpeechSpeed.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val showDonationBanner by viewModel.showHomeScreenDonationBanner.collectAsStateWithLifecycle()
+    val isActiveSupporter by viewModel.isActiveSupporter.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -144,7 +146,11 @@ fun SiftNavGraph(
                     }
                 },
                 onPlayMorningDigest = { viewModel.play3MinuteMorningDigest() },
-                onContextCardClick = { viewModel.loadContextCard(it) }
+                onContextCardClick = { viewModel.loadContextCard(it) },
+                isActiveSupporter = isActiveSupporter,
+                showDonationBanner = showDonationBanner,
+                onOpenDonationDialog = { viewModel.openDonationDialog() },
+                onDismissDonationBanner = { viewModel.dismissHomeScreenDonationBanner() }
             )
         }
 
@@ -172,7 +178,9 @@ fun SiftNavGraph(
                 initialTypeface = readerTypeface,
                 onFontSizeChanged = { viewModel.setReaderFontSize(it) },
                 onTypefaceChanged = { viewModel.setReaderTypeface(it) },
-                onContextCardClick = { viewModel.loadContextCard(it) }
+                onContextCardClick = { viewModel.loadContextCard(it) },
+                isActiveSupporter = isActiveSupporter,
+                onOpenDonationDialog = { viewModel.openDonationDialog() }
             )
         }
 
@@ -286,7 +294,9 @@ fun SiftNavGraph(
                         onReaderTypefaceChanged = { viewModel.setReaderTypeface(it) },
                         onPreCacheForOfflineChanged = { viewModel.setPreCacheForOffline(it) },
                         onBriefingScheduleChanged = { h, m -> viewModel.setBriefingSchedule(h, m) },
-                        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) }
+                        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) },
+                        isActiveSupporter = isActiveSupporter,
+                        onOpenDonationDialog = { viewModel.openDonationDialog() }
                     )
                 }
             }

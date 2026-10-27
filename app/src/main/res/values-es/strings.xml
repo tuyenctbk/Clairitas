@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sift</string>
     <string name="nav_home">Inicio</string>
@@ -103,7 +104,7 @@
     <string name="share_prompt_desc">Ayuda a tus colegas y amigos a evitar el clickbait con Sift News.</string>
     <string name="share_prompt_action">Compartir con amigos</string>
     <string name="share_prompt_later">Ahora no</string>
-    <string name="update_prompt_title">Novedades en Sift v1.7</string>
+    <string name="update_prompt_title">Novedades en Sift v1.8</string>
     <string name="update_prompt_badge">Mejora de Radar de Alto SNR</string>
     <string name="update_prompt_feature_1">⚡ Hacker News y arXiv: Discusión técnica y artículos científicos destacados</string>
     <string name="update_prompt_feature_2">🌐 Inteligencia global GDELT 2.0: Eventos macro geopolíticos en tiempo real</string>
@@ -111,7 +112,7 @@
     <string name="update_prompt_feature_4">📺 Optimizado para Android TV: Navegación D-pad fluida y diseño adaptativo</string>
     <string name="update_prompt_dismiss">Explorar v1.7</string>
     <string name="check_for_updates">Buscar actualizaciones</string>
-    <string name="app_up_to_date">Está utilizando la versión más reciente de Sift (v1.7)</string>
+    <string name="app_up_to_date">Está utilizando la versión más reciente de Sift (v1.8)</string>
     <string name="radar_scan_now">Escanear ahora</string>
     <string name="radar_rescan_signals">Reescanear señales de noticias</string>
     <string name="sign_out">Cerrar sesión</string>
@@ -123,4 +124,33 @@
     <string name="permission_step_3">3. Activar \'Permitir todas las notificaciones de Sift\'.</string>
     <string name="permission_step_4">4. Asegurar que los canales de \'Alertas de Radar\' y \'Resumen Matutino\' estén ACTIVADOS.</string>
     <string name="guide_label">Guía</string>
+    <string name="donation_dialog_title">Apoyar el desarrollo de Sift</string>
+    <string name="donation_dialog_subtitle">100% Sin anuncios • Inteligencia de noticias limpia • Desarrollador independiente</string>
+    <string name="active_supporter_badge">Colaborador Activo</string>
+    <string name="supporter_unlocked_toast">¡Insignia de Colaborador Activo desbloqueada! ¡Muchas gracias!</string>
+    <string name="thank_you_supporter_msg">¡Gracias por apoyar a Sift con %s! Eres un colaborador reconocido.</string>
+    <string name="method_google_play">Google Play</string>
+    <string name="method_paypal_qr">PayPal y QR</string>
+    <string name="method_kofi">Ko-fi</string>
+    <string name="google_play_tier_description">Elija un nivel voluntario de colaborador con 1 toque en Google Pay. Desbloquea inmediatamente la insignia de Colaborador Activo.</string>
+    <string name="paypal_qr_instruction">Elija un monto sugerido o escanee el código QR directamente con su aplicación PayPal o cámara bancaria.</string>
+    <string name="open_paypal_action">Abrir en PayPal</string>
+    <string name="copy_link_action">Copiar enlace</string>
+    <string name="copy_address_action">Copiar dirección de billetera</string>
+    <string name="kofi_description">Apoye nuestro canal de noticias de código abierto a través de Ko-fi con tarjeta o PayPal.</string>
+    <string name="donation_banner_title">Apoyar noticias independientes ☕</string>
+    <string name="donation_banner_subtitle">¿Disfrutas de noticias sin clickbait y resúmenes limpios de IA? Invita un café al desarrollador.</string>
+    <string name="donation_banner_action">Apoyar</string>
+    <string name="post_operation_card_title">¡Tarea completada con éxito! ☕</string>
+    <string name="post_operation_card_desc">Si Sift te ahorró tiempo hoy, considera apoyar el desarrollo independiente.</string>
+    <string name="buy_coffee_action">Invitar café</string>
+    <string name="milestone_dialog_title">🎉 ¡%1$d tareas completadas!</string>
+    <string name="milestone_dialog_desc">¡Has procesado y resumido con éxito %1$d artículos de noticias de alta señal! Sift sigue siendo 100%% libre de anuncios gracias a los lectores.</string>
+    <string name="support_independent_dev">Apoyar desarrollo</string>
+    <string name="keep_reading_action">Seguir leyendo</string>
+    <string name="buy_me_a_coffee">Invítame un café ☕</string>
+    <string name="donation_card_subtitle">Apoye el desarrollo de la inteligencia de noticias Sift</string>
+    <string name="donation_card_desc">Si Sift te ahorra tiempo o te ayuda a filtrar el ruido, ¡considera apoyar el mantenimiento de la aplicación!</string>
+    <string name="view_all_donation_methods_action">Todos los métodos de donación (Google Play, PayPal, Ko-fi)</string>
+    <string name="share_key_takeaways">Share Key Takeaways</string>
 </resources>

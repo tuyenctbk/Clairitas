@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,15 +40,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private const val PAYPAL_BASE_URL = "https://paypal.me/tuyenphamvn"
+import com.example.R
+import com.example.util.DonationManager
 
 @Composable
 fun SupportDonationCard(
+    isActiveSupporter: Boolean = false,
+    onOpenMultiMethodDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -81,7 +83,7 @@ fun SupportDonationCard(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.LocalCafe,
-                            contentDescription = "Buy Me a Coffee",
+                            contentDescription = stringResource(R.string.buy_me_a_coffee),
                             tint = Color(0xFFE65100),
                             modifier = Modifier.size(26.dp)
                         )
@@ -93,7 +95,7 @@ fun SupportDonationCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Buy Me a Coffee ☕",
+                            text = stringResource(R.string.buy_me_a_coffee),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -106,17 +108,32 @@ fun SupportDonationCard(
                         )
                     }
                     Text(
-                        text = "Support the development of Sift News Intelligence",
+                        text = stringResource(R.string.donation_card_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                if (isActiveSupporter) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFFFD54F).copy(alpha = 0.3f)
+                    ) {
+                        Text(
+                            text = "★ " + stringResource(R.string.active_supporter_badge),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFB78103),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "If Sift saves you time or helps you filter through noise, consider supporting developer maintenance!",
+                text = stringResource(R.string.donation_card_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 lineHeight = 20.sp
@@ -132,38 +149,58 @@ fun SupportDonationCard(
                 SupportTierButton(
                     label = "☕ $3",
                     subLabel = "Espresso",
-                    onClick = { openPayPalLink(context, "$PAYPAL_BASE_URL/3") },
+                    onClick = { openExternalLink(context, "${DonationManager.PAYPAL_BASE_URL}/3") },
                     modifier = Modifier.weight(1f)
                 )
 
                 SupportTierButton(
                     label = "🍕 $5",
                     subLabel = "Pizza Slice",
-                    onClick = { openPayPalLink(context, "$PAYPAL_BASE_URL/5") },
+                    onClick = { openExternalLink(context, "${DonationManager.PAYPAL_BASE_URL}/5") },
                     modifier = Modifier.weight(1f)
                 )
 
                 SupportTierButton(
                     label = "🍱 $10",
                     subLabel = "Bento Box",
-                    onClick = { openPayPalLink(context, "$PAYPAL_BASE_URL/10") },
+                    onClick = { openExternalLink(context, "${DonationManager.PAYPAL_BASE_URL}/10") },
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Direct PayPal Action Buttons
+            // Primary Action: Open Full Multi-Channel Donation Dialog
+            Button(
+                onClick = onOpenMultiMethodDialog,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("open_all_donation_methods_btn")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingBag,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.view_all_donation_methods_action),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Direct PayPal & Copy Link Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = { openPayPalLink(context, PAYPAL_BASE_URL) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0070BA), // PayPal Blue
-                        contentColor = Color.White
-                    ),
+                OutlinedButton(
+                    onClick = { openExternalLink(context, DonationManager.PAYPAL_BASE_URL) },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .weight(1f)
@@ -172,55 +209,30 @@ fun SupportDonationCard(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Donate via PayPal",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        text = "PayPal Link",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
 
                 OutlinedButton(
-                    onClick = { copyToClipboard(context, PAYPAL_BASE_URL) },
+                    onClick = { copyToClipboard(context, DonationManager.PAYPAL_BASE_URL) },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.testTag("paypal_copy_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy PayPal Link",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Copy Link",
+                        text = stringResource(R.string.copy_link_action),
                         fontSize = 12.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // PayPal Link URL Chip
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { copyToClipboard(context, PAYPAL_BASE_URL) }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "PayPal Link: paypal.me/tuyenphamvn",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -260,10 +272,11 @@ private fun SupportTierButton(
     }
 }
 
-private fun openPayPalLink(context: Context, url: String) {
+private fun openExternalLink(context: Context, url: String) {
     try {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
         context.startActivity(intent)
     } catch (e: Exception) {
         Toast.makeText(context, "Unable to open browser: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -272,7 +285,7 @@ private fun openPayPalLink(context: Context, url: String) {
 
 private fun copyToClipboard(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-    val clip = ClipData.newPlainText("PayPal Link", text)
+    val clip = ClipData.newPlainText("Donation Link", text)
     clipboard?.setPrimaryClip(clip)
-    Toast.makeText(context, "PayPal link copied to clipboard!", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "Link copied to clipboard!", Toast.LENGTH_SHORT).show()
 }

@@ -118,6 +118,8 @@ fun SettingsScreen(
     onPreCacheForOfflineChanged: (Boolean) -> Unit = {},
     onBriefingScheduleChanged: (Int, Int) -> Unit = { _, _ -> },
     onCheckForUpdates: () -> Unit = {},
+    isActiveSupporter: Boolean = false,
+    onOpenDonationDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -275,7 +277,10 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         // Support Developer / Buy Me a Coffee Card
-        SupportDonationCard()
+        SupportDonationCard(
+            isActiveSupporter = isActiveSupporter,
+            onOpenMultiMethodDialog = onOpenDonationDialog
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
