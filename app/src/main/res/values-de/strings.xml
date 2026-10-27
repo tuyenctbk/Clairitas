@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100% werbefrei • Saubere Nachrichten-Intelligenz • Unabhängiger Entwickler</string>
     <string name="active_supporter_badge">Aktiver Unterstützer</string>
     <string name="supporter_unlocked_toast">Status als aktiver Unterstützer freigeschaltet! Danke!</string>
-    <string name="thank_you_supporter_msg">Danke für deine Unterstützung von Sift mit %s! Du bist ein anerkannter Förderer.</string>
+    <string name="thank_you_supporter_msg">Danke für deine Unterstützung von Sift mit %1$s! Du bist ein anerkannter Förderer.</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal &amp;amp; QR</string>
     <string name="method_kofi">Ko-fi</string>

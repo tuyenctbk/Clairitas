@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100%広告なし • クリーンなニュース知性 • 個人開発</string>
     <string name="active_supporter_badge">アクティブサポーター</string>
     <string name="supporter_unlocked_toast">サポーターバッジが解除されました！ありがとうございます！</string>
-    <string name="thank_you_supporter_msg">%s でSiftをご支援いただきありがとうございます！認定サポーターです。</string>
+    <string name="thank_you_supporter_msg">%1$s でSiftをご支援いただきありがとうございます！認定サポーターです。</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal &amp;amp; QRコード</string>
     <string name="method_kofi">Ko-fi</string>

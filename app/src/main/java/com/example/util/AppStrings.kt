@@ -207,22 +207,22 @@ object AppStrings {
 
     fun getLanguageSettingSubtitle(langCode: String): String {
         return when (langCode.lowercase().take(2)) {
-            "vi" -> "Chọn ngôn ngữ mặc định cho giao diện và dịch bài viết bằng AI."
-            "es" -> "Selecciona tu idioma predeterminado para la interfaz y traducción IA."
-            "fr" -> "Choisissez votre langue par défaut pour l'interface et la traduction IA."
-            "de" -> "Wählen Sie Ihre Standardsprache für Oberfläche und KI-Übersetzung."
-            "ja" -> "ユーザーインターフェースとAI翻訳サービスのデフォルト言語を選択します。"
-            "ko" -> "사용자 인터페이스 및 AI 번역 서비스의 기본 언어를 선택하세요."
-            "zh" -> "选择界面和 AI 文章翻译服务的默认语言。"
-            "pt" -> "Selecione o idioma padrão para a interface e tradução de IA."
-            "it" -> "Seleziona la lingua predefinita per l'interfaccia e la traduzione IA."
-            "hi" -> "यूज़र इंटरफ़ेस और AI अनुवाद के लिए अपनी डिफ़ॉल्ट भाषा चुनें।"
-            "ru" -> "Выберите язык по умолчанию для интерфейса и ИИ-перевода."
-            "ar" -> "اختر لغتك الافتراضية لواجهة المستخدم وخدمات ترجمة الذكاء الاصطناعي."
-            "nl" -> "Selecteer uw standaardtaal voor de interface en AI-vertaling."
-            "id" -> "Pilih bahasa default untuk antarmuka dan layanan translasi AI."
-            "th" -> "เลือกภาษาเริ่มต้นสำหรับอินเทอร์เฟซผู้ใช้และการแปล AI"
-            else -> "Select your default language for both the user interface and AI article translation services."
+            "vi" -> "Chọn ngôn ngữ mặc định cho giao diện ứng dụng."
+            "es" -> "Selecciona tu idioma predeterminado para la interfaz de la aplicación."
+            "fr" -> "Choisissez votre langue par défaut pour l'interface de l'application."
+            "de" -> "Wählen Sie Ihre Standardsprache für die App-Benutzeroberfläche."
+            "ja" -> "アプリのユーザーインターフェースのデフォルト言語を選択します。"
+            "ko" -> "앱 사용자 인터페이스의 기본 언어를 선택하세요."
+            "zh" -> "选择应用界面的默认语言。"
+            "pt" -> "Selecione o idioma padrão para a interface do aplicativo."
+            "it" -> "Seleziona la lingua predefinita per l'interfaccia dell'applicazione."
+            "hi" -> "ऐप यूज़र इंटरफ़ेस के लिए अपनी डिफ़ॉल्ट भाषा चुनें।"
+            "ru" -> "Выберите язык по умолчанию для интерфейса приложения."
+            "ar" -> "اختر لغتك الافتراضية لواجهة التطبيق."
+            "nl" -> "Selecteer uw standaardtaal voor de app-interface."
+            "id" -> "Pilih bahasa default untuk antarmuka aplikasi."
+            "th" -> "เลือกภาษาเริ่มต้นสำหรับอินเทอร์เฟซของแอป"
+            else -> "Select your default language for the application user interface."
         }
     }
 

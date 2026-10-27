@@ -114,56 +114,11 @@ fun ArticleDetailScreen(
     var readerFontSizeSp by remember { mutableStateOf(initialFontSize) }
     var readerTypefaceStr by remember { mutableStateOf(initialTypeface) }
 
-    // 60+ Language translation states
-    var selectedTranslateLang by remember { mutableStateOf<Pair<String, String>?>(null) } // Name, Code
-    var isTranslating by remember { mutableStateOf(false) }
-    var translatedTitle by remember { mutableStateOf<String?>(null) }
-    var translatedBullets by remember { mutableStateOf<List<String>?>(null) }
-    var translatedContent by remember { mutableStateOf<String?>(null) }
-    var showLanguageBottomSheet by remember { mutableStateOf(false) }
-
-    // LaunchedEffect to translate article whenever language selection changes
-    androidx.compose.runtime.LaunchedEffect(selectedTranslateLang) {
-        if (selectedTranslateLang != null) {
-            isTranslating = true
-            try {
-                val result = com.example.data.repository.GeminiSummarizer.translateArticle(
-                    title = article.title,
-                    bullets = article.summaryBullets,
-                    content = article.fullContent,
-                    targetLanguage = selectedTranslateLang!!.first,
-                    userCustomApiKey = customApiKey
-                )
-                translatedTitle = result.title
-                translatedBullets = result.bullets
-                translatedContent = result.content
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                isTranslating = false
-            }
-        } else {
-            translatedTitle = null
-            translatedBullets = null
-            translatedContent = null
-        }
-    }
-
-    val currentPlayArticle = if (translatedTitle != null && translatedBullets != null && translatedContent != null) {
-        article.copy(
-            title = translatedTitle!!,
-            summaryBullets = translatedBullets!!,
-            fullContent = translatedContent!!
-        )
-    } else {
-        article
-    }
-
     val shareArticleSummary = {
         val shareText = "Sift News Curation & Intelligence:\n" +
-                "📌 ${translatedTitle ?: article.title}\n\n" +
+                "📌 ${article.title}\n\n" +
                 "⚡ 3 Core Key Takeaways:\n" +
-                (translatedBullets ?: article.summaryBullets).joinToString("\n") { "• $it" } + "\n\n" +
+                article.summaryBullets.joinToString("\n") { "• $it" } + "\n\n" +
                 "🔗 Source (${article.publisher}): ${article.sourceUrl}"
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             putExtra(Intent.EXTRA_TEXT, shareText)
@@ -425,104 +380,11 @@ fun ArticleDetailScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "AI Translation (60+ Languages):",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            val quickLanguages = listOf(
-                "Original" to "en",
-                "Vietnamese" to "vi",
-                "Spanish" to "es",
-                "French" to "fr",
-                "German" to "de",
-                "Japanese" to "ja",
-                "Korean" to "ko",
-                "Chinese" to "zh-CN",
-                "Portuguese" to "pt",
-                "Italian" to "it",
-                "Hindi" to "hi",
-                "Russian" to "ru",
-                "Arabic" to "ar",
-                "Thai" to "th"
-            )
-            androidx.compose.foundation.lazy.LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(quickLanguages.size) { index ->
-                    val lang = quickLanguages[index]
-                    val isSelected = (selectedTranslateLang == null && lang.first == "Original") || 
-                                     (selectedTranslateLang != null && selectedTranslateLang!!.first == lang.first)
-                    androidx.compose.material3.InputChip(
-                        selected = isSelected,
-                        onClick = {
-                            if (lang.first == "Original") {
-                                selectedTranslateLang = null
-                            } else {
-                                selectedTranslateLang = lang
-                            }
-                        },
-                        label = { Text(text = lang.first, fontSize = 12.sp) },
-                        leadingIcon = if (isSelected) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = "Selected",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        } else null
-                    )
-                }
-                item {
-                    androidx.compose.material3.InputChip(
-                        selected = selectedTranslateLang != null && !quickLanguages.map { it.first }.contains(selectedTranslateLang!!.first),
-                        onClick = { showLanguageBottomSheet = true },
-                        label = { Text(text = if (selectedTranslateLang != null && !quickLanguages.map { it.first }.contains(selectedTranslateLang!!.first)) selectedTranslateLang!!.first else "More...", fontSize = 12.sp) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Language,
-                                contentDescription = "More",
-                                modifier = Modifier.size(16.dp)
-                              )
-                        }
-                    )
-                }
-            }
-
-            if (isTranslating) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    androidx.compose.material3.CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Translating to ${selectedTranslateLang?.first ?: ""}... Please wait",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             // Honest Title
             Text(
-                text = translatedTitle ?: article.title,
+                text = article.title,
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
@@ -640,7 +502,7 @@ fun ArticleDetailScreen(
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onPlayAudio(currentPlayArticle) }
+                                    .clickable { onPlayAudio(article) }
                                     .testTag("listen_tts_summary_button")
                             ) {
                                 Row(
@@ -666,7 +528,7 @@ fun ArticleDetailScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        (translatedBullets ?: article.summaryBullets).forEach { bullet ->
+                        article.summaryBullets.forEach { bullet ->
                             Row(
                                 verticalAlignment = Alignment.Top,
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -975,7 +837,7 @@ fun ArticleDetailScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    val rawContent = translatedContent ?: article.fullContent
+                    val rawContent = article.fullContent
                     val displayedContent = rawContent.lines().filter { line ->
                         val l = line.lowercase()
                         !l.contains("advertisement") &&
@@ -1147,78 +1009,6 @@ fun ArticleDetailScreen(
                     },
                     modifier = Modifier.fillMaxSize()
                 )
-            }
-        }
-    }
-
-    if (showLanguageBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showLanguageBottomSheet = false },
-            modifier = Modifier.fillMaxHeight(0.7f)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Translate to 60+ Languages",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-
-                androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                    columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    val allLanguages = listOf(
-                        "Original" to "en",
-                        "Vietnamese" to "vi", "Spanish" to "es", "French" to "fr", "German" to "de",
-                        "Japanese" to "ja", "Chinese (Simp)" to "zh-CN", "Chinese (Trad)" to "zh-TW", "Korean" to "ko",
-                        "Arabic" to "ar", "Hindi" to "hi", "Russian" to "ru", "Portuguese" to "pt", "Italian" to "it",
-                        "Bengali" to "bn", "Dutch" to "nl", "Swedish" to "sv", "Polish" to "pl", "Turkish" to "tr",
-                        "Indonesian" to "id", "Thai" to "th", "Malay" to "ms", "Tagalog" to "tl", "Tamil" to "ta",
-                        "Telugu" to "te", "Czech" to "cs", "Danish" to "da", "Finnish" to "fi", "Greek" to "el",
-                        "Hebrew" to "he", "Hungarian" to "hu", "Norwegian" to "no", "Romanian" to "ro", "Slovak" to "sk",
-                        "Ukrainian" to "uk", "Afrikaans" to "af", "Albanian" to "sq", "Amharic" to "am", "Armenian" to "hy",
-                        "Azerbaijani" to "az", "Basque" to "eu", "Belarusian" to "be", "Bosnian" to "bs", "Bulgarian" to "bg",
-                        "Catalan" to "ca", "Croatian" to "hr", "Esperanto" to "eo", "Estonian" to "et", "Galician" to "gl",
-                        "Georgian" to "ka", "Gujarati" to "gu", "Haitian Creole" to "ht", "Icelandic" to "is", "Irish" to "ga",
-                        "Kannada" to "kn", "Latvian" to "lv", "Lithuanian" to "lt", "Macedonian" to "mk", "Maltese" to "mt",
-                        "Persian" to "fa", "Serbian" to "sr", "Slovenian" to "sl", "Swahili" to "sw", "Urdu" to "ur",
-                        "Welsh" to "cy", "Yiddish" to "yi"
-                    )
-                    items(allLanguages.size) { index ->
-                        val lang = allLanguages[index]
-                        val isSelected = (selectedTranslateLang == null && lang.first == "Original") || 
-                                         (selectedTranslateLang != null && selectedTranslateLang!!.first == lang.first)
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (lang.first == "Original") {
-                                        selectedTranslateLang = null
-                                    } else {
-                                        selectedTranslateLang = lang
-                                    }
-                                    showLanguageBottomSheet = false
-                                }
-                        ) {
-                            Text(
-                                text = lang.first,
-                                fontSize = 13.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
-                            )
-                        }
-                    }
-                }
             }
         }
     }

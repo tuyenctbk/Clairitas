@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100% Ad-Free • Clean News Intelligence • Indie Developer</string>
     <string name="active_supporter_badge">Active Supporter</string>
     <string name="supporter_unlocked_toast">Active Supporter status unlocked! Thank you!</string>
-    <string name="thank_you_supporter_msg">Thank you for supporting Sift with %s! You are a recognized supporter.</string>
+    <string name="thank_you_supporter_msg">Thank you for supporting Sift with %1$s! You are a recognized supporter.</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal &amp; QR</string>
     <string name="method_kofi">Ko-fi</string>

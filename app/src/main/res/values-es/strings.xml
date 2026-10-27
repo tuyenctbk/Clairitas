@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100% Sin anuncios • Inteligencia de noticias limpia • Desarrollador independiente</string>
     <string name="active_supporter_badge">Colaborador Activo</string>
     <string name="supporter_unlocked_toast">¡Insignia de Colaborador Activo desbloqueada! ¡Muchas gracias!</string>
-    <string name="thank_you_supporter_msg">¡Gracias por apoyar a Sift con %s! Eres un colaborador reconocido.</string>
+    <string name="thank_you_supporter_msg">¡Gracias por apoyar a Sift con %1$s! Eres un colaborador reconocido.</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal y QR</string>
     <string name="method_kofi">Ko-fi</string>

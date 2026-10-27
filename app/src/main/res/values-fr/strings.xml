@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100% sans pub • Intelligence d\'actualités propre • Développeur indépendant</string>
     <string name="active_supporter_badge">Contributeur actif</string>
     <string name="supporter_unlocked_toast">Statut de contributeur actif débloqué ! Merci !</string>
-    <string name="thank_you_supporter_msg">Merci de soutenir Sift avec %s ! Vous êtes un contributeur reconnu.</string>
+    <string name="thank_you_supporter_msg">Merci de soutenir Sift avec %1$s ! Vous êtes un contributeur reconnu.</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal &amp;amp; QR</string>
     <string name="method_kofi">Ko-fi</string>

@@ -128,7 +128,7 @@
     <string name="donation_dialog_subtitle">100% 无广告 • 纯净新闻情报 • 独立开发者</string>
     <string name="active_supporter_badge">活跃支持者</string>
     <string name="supporter_unlocked_toast">已解锁活跃支持者徽章！非常感谢！</string>
-    <string name="thank_you_supporter_msg">感谢您通过 %s 支持 Sift！您是尊贵的支持者。</string>
+    <string name="thank_you_supporter_msg">感谢您通过 %1$s 支持 Sift！您是尊贵的支持者。</string>
     <string name="method_google_play">Google Play</string>
     <string name="method_paypal_qr">PayPal 与 二维码</string>
     <string name="method_kofi">Ko-fi</string>

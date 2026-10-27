@@ -5,11 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ArticleEntity::class, KeywordTrapEntity::class, KeywordEntity::class], version = 2, exportSchema = false)
+@Database(entities = [ArticleEntity::class, KeywordTrapEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun articleDao(): ArticleDao
     abstract fun keywordTrapDao(): KeywordTrapDao
-    abstract fun keywordDao(): KeywordDao
 
     companion object {
         @Volatile
